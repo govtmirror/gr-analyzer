@@ -54,7 +54,8 @@ namespace gr {
                        double lo_offset,
                        size_t initial_delay,
                        size_t tune_delay,
-                       size_t ncopy);
+                       size_t ncopy,
+                       bool unittest=false);
 
       /*!
        * \brief Return true if flowgraph will exit at end of span

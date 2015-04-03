@@ -54,7 +54,6 @@ namespace gr {
     private:
       // used for finding tag streams
       pmt::pmt_t d_tag_key;
-      size_t d_rel_offset;
       std::vector<gr::tag_t> d_tags;
 
       // used for skipping samples
@@ -79,6 +78,8 @@ namespace gr {
       bool d_retune;              // convenience variable for "nsegments > 1"
       bool d_exit_after_complete; // if true, exit at end of span
 
+      bool d_unittest;              // if true, assume rx_freq's value is correct
+
       WorkState st;
 
       void reset();               // helper function called at end of span
@@ -101,8 +102,8 @@ namespace gr {
                          double lo_offset,
                          size_t initial_delay,
                          size_t tune_delay,
-                         size_t ncopy
-        );
+                         size_t ncopy,
+                         bool unittest=false);
 
       // Where all the action really happens
       void forecast (int noutput_items, gr_vector_int &ninput_items_required);

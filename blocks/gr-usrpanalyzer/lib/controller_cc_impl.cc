@@ -44,7 +44,8 @@ namespace gr {
                         double lo_offset,
                         size_t initial_delay,
                         size_t tune_delay,
-                        size_t ncopy)
+                        size_t ncopy,
+                        bool unittest)
     {
       return gnuradio::get_initial_sptr
         (new controller_cc_impl(usrp,
@@ -52,7 +53,8 @@ namespace gr {
                                 lo_offset,
                                 initial_delay,
                                 tune_delay,
-                                ncopy));
+                                ncopy,
+                                unittest));
     }
 
     /*
@@ -63,7 +65,8 @@ namespace gr {
                                            double lo_offset,
                                            size_t initial_delay,
                                            size_t tune_delay,
-                                           size_t ncopy)
+                                           size_t ncopy,
+                                           bool unittest)
       : gr::block("controller_cc",
                   gr::io_signature::make(1, 1, sizeof(gr_complex)),
                   gr::io_signature::make(1, 1, sizeof(gr_complex))),
@@ -88,6 +91,7 @@ namespace gr {
       d_tag_key = pmt::intern("rx_freq");
 
       set_tag_propagation_policy(TPP_DONT);
+      d_unittest = unittest;
     }
 
     void
@@ -132,9 +136,8 @@ namespace gr {
 
     void
     controller_cc_impl::exit_flowgraph(WorkState& st)
+    /* If done copying and d_exit_after_complete was set, then WORK_DONE */
     {
-      // If last run completed copying and d_exit_after_complete was set,
-      // then WORK_DONE
       reset();  // leave the block in a sane state
       st.nconsume = 0;
       st.done = true;
@@ -155,13 +158,13 @@ namespace gr {
 
     void
     controller_cc_impl::delay_for_rx_freq(int ninput_items, WorkState& st)
-    // Drop samples until receiving a sample tagged with "rx_freq"
+    /* Drop samples until receiving a sample tagged with "rx_freq" */
     {
       size_t range_start = this->nitems_read(0);
       size_t range_stop = range_start + ninput_items;
       size_t rel_offset;
 
-      assert(d_tags.empty()); // tags vector should have been left empty
+      d_tags.clear();
       // populate tags vector with any tag on chan 0 matching tag_key
       this->get_tags_in_range(d_tags, 0, range_start, range_stop, d_tag_key);
 
@@ -171,7 +174,7 @@ namespace gr {
       {
         // For some reason rx_freq's value is not part of tune_result_t
         double trfreq = d_tune_result.actual_rf_freq - d_tune_result.actual_dsp_freq;
-        if (pmt::to_double(d_tags[0].value) == trfreq)
+        if (pmt::to_double(d_tags[0].value) == trfreq || d_unittest)
         {
           rel_offset = d_tags[0].offset - range_start;
           got_target_freq = true;
@@ -188,7 +191,7 @@ namespace gr {
 
         if (rel_offset != 0)
         {
-          st.nconsume = d_rel_offset-1;
+          st.nconsume = rel_offset;
           st.retval = 0;
           st.done = true;
         }

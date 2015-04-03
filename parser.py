@@ -102,7 +102,7 @@ def init_parser():
                         default=1000000, metavar="samples",
                         help="samples to skip after initiating flowgraph [default=%(default)s]")
     parser.add_argument("--tune-delay", type=int,
-                        default=250000, metavar="samples",
+                        default=100000, metavar="samples",
                         help="samples to skip after each retune [default=%(default)s]")
     parser.add_argument("--averages", type=pos_int, dest="n_averages",
                         default=30, metavar="fft frames",
