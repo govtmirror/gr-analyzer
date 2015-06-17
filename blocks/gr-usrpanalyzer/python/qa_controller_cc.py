@@ -31,10 +31,10 @@ class qa_controller_cc(gr_unittest.TestCase):
     def setUp(self):
         self.tb = gr.top_block()
         self.tb_null = gr.top_block()
-        self.u = uhd.usrp_source(device_addr="",
+        self.usrp = uhd.usrp_source(device_addr="",
                                  stream_args=uhd.stream_args("fc32"))
         null = blocks.null_sink(gr.sizeof_gr_complex)
-        self.tb_null.connect(self.u, null)
+        self.tb_null.connect(self.usrp, null)
         self.tag_debug = blocks.tag_debug(gr.sizeof_gr_complex, "Tag debug")
         self.tag_debug.set_display(False)
         self.vsink = blocks.vector_sink_c()
@@ -51,14 +51,14 @@ class qa_controller_cc(gr_unittest.TestCase):
         tag1_dict["offset"] = 10000
         tag1_dict["key"] = pmt.intern("rx_freq")
         tag1_dict["value"] = pmt.from_double(0.0)
-        tag1_dict["srcid"] = pmt.intern(self.u.name())
+        tag1_dict["srcid"] = pmt.intern(self.usrp.name())
         tag1 = gr.tag_utils.python_to_tag(tag1_dict)
 
         nsamples = 10100
         src_data = np.array([complex(x) for x in range(nsamples)])
         src = blocks.vector_source_c(data=src_data, tags=[tag1])
 
-        usrp_ptr = self.u.__deref__()
+        usrp_ptr = self.usrp
         cfreqs = np.array([ 0.])
         lo_offset = 0
         initial_delay = 0
@@ -84,14 +84,14 @@ class qa_controller_cc(gr_unittest.TestCase):
         tag1_dict["offset"] = 10000
         tag1_dict["key"] = pmt.intern("rx_freq")
         tag1_dict["value"] = pmt.from_double(0.0)
-        tag1_dict["srcid"] = pmt.intern(self.u.name())
+        tag1_dict["srcid"] = pmt.intern(self.usrp.name())
         tag1 = gr.tag_utils.python_to_tag(tag1_dict)
 
         nsamples = 10101
         src_data = np.array([complex(x) for x in range(nsamples)])
         src = blocks.vector_source_c(data=src_data, tags=[tag1])
 
-        usrp_ptr = self.u.__deref__()
+        usrp_ptr = self.usrp
         cfreqs = np.array([ 0.])
         lo_offset = 0
         initial_delay = 0
@@ -118,28 +118,28 @@ class qa_controller_cc(gr_unittest.TestCase):
         tag1_dict["offset"] = 10000
         tag1_dict["key"] = pmt.intern("rx_freq")
         tag1_dict["value"] = pmt.from_double(0.0)
-        tag1_dict["srcid"] = pmt.intern(self.u.name())
+        tag1_dict["srcid"] = pmt.intern(self.usrp.name())
         tag1 = gr.tag_utils.python_to_tag(tag1_dict)
 
         tag2_dict = dict()
         tag2_dict["offset"] = 20000
         tag2_dict["key"] = pmt.intern("rx_freq")
         tag2_dict["value"] = pmt.from_double(1.0)
-        tag2_dict["srcid"] = pmt.intern(self.u.name())
+        tag2_dict["srcid"] = pmt.intern(self.usrp.name())
         tag2 = gr.tag_utils.python_to_tag(tag2_dict)
 
         tag3_dict = dict()
         tag3_dict["offset"] = 30000
         tag3_dict["key"] = pmt.intern("rx_freq")
         tag3_dict["value"] = pmt.from_double(2.0)
-        tag3_dict["srcid"] = pmt.intern(self.u.name())
+        tag3_dict["srcid"] = pmt.intern(self.usrp.name())
         tag3 = gr.tag_utils.python_to_tag(tag3_dict)
 
         nsamples = 30100
         src_data = np.array([complex(x) for x in range(nsamples)])
         src = blocks.vector_source_c(data=src_data, tags=[tag1, tag2, tag3])
 
-        usrp_ptr = self.u.__deref__()
+        usrp_ptr = self.usrp
         cfreqs = np.array([ 0.,  1.,  2.])
         lo_offset = 0
         initial_delay = 0
@@ -167,14 +167,14 @@ class qa_controller_cc(gr_unittest.TestCase):
         tag1_dict["offset"] = 10000
         tag1_dict["key"] = pmt.intern("rx_freq")
         tag1_dict["value"] = pmt.from_double(0.0)
-        tag1_dict["srcid"] = pmt.intern(self.u.name())
+        tag1_dict["srcid"] = pmt.intern(self.usrp.name())
         tag1 = gr.tag_utils.python_to_tag(tag1_dict)
 
         nsamples = 10100
         src_data = np.array([complex(x) for x in range(nsamples)])
         src = blocks.vector_source_c(data=src_data, tags=[tag1])
 
-        usrp_ptr = self.u.__deref__()
+        usrp_ptr = self.usrp
         cfreqs = np.array([ 0.])
         lo_offset = 0
         initial_delay = 50

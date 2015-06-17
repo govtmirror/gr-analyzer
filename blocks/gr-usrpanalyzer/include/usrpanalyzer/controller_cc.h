@@ -49,7 +49,7 @@ namespace gr {
        * class. usrpanalyzer::controller_cc::make is the public interface for
        * creating new instances.
        */
-      static sptr make(gr::uhd::usrp_source *usrp,
+      static sptr make(boost::shared_ptr<gr::uhd::usrp_source> &usrp,
                        std::vector<double> center_freqs,
                        double lo_offset,
                        size_t initial_delay,

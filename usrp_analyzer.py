@@ -67,14 +67,14 @@ class top_block(gr.top_block):
             args=cfg.stream_args
         )
 
-        self.u = uhd.usrp_source(
+        self.usrp = uhd.usrp_source(
             device_addr=cfg.device_addr,
             stream_args=self.stream_args
         )
-        self.u.set_auto_dc_offset(False)
+        self.usrp.set_auto_dc_offset(False)
 
         self.sample_rates = np.array(
-            [r.start() for r in self.u.get_samp_rates().iterator()],
+            [r.start() for r in self.usrp.get_samp_rates().iterator()],
             dtype=np.float
         )
 
@@ -90,7 +90,7 @@ class top_block(gr.top_block):
 
         # Default to 0 gain, full attenuation
         if cfg.gain is None:
-            g = self.u.get_gain_range()
+            g = self.usrp.get_gain_range()
             cfg.gain = g.start()
 
         self.set_gain(cfg.gain)
@@ -162,21 +162,21 @@ class top_block(gr.top_block):
         )
 
         if self.reset_stream_args:
-            self.u.set_stream_args(self.stream_args)
+            self.usrp.set_stream_args(self.stream_args)
             self.reset_stream_args = False
 
         if cfg.subdev_spec:
-            self.u.set_subdev_spec(cfg.subdev_spec, 0)
+            self.usrp.set_subdev_spec(cfg.subdev_spec, 0)
 
         # Set the antenna
         if cfg.antenna:
-            self.u.set_antenna(cfg.antenna, 0)
+            self.usrp.set_antenna(cfg.antenna, 0)
 
         self.resampler = None
         self.set_sample_rate(cfg.sample_rate)
 
         self.ctrl = controller_cc(
-            self.u.__deref__(),
+            self.usrp,
             cfg.center_freqs,
             cfg.lo_offset,
             cfg.skip_initial,
@@ -245,9 +245,9 @@ class top_block(gr.top_block):
         # USRP > (resamp) > ctrl > fft > mag^2 > stats > W2dBm > stitch > plot
 
         if self.resampler:
-            self.connect(self.u, self.resampler, self.ctrl)
+            self.connect(self.usrp, self.resampler, self.ctrl)
         else:
-            self.connect(self.u, self.ctrl)
+            self.connect(self.usrp, self.ctrl)
         self.connect(self.ctrl, stream_to_fft_vec, self.fft)
         self.connect(self.fft, c2mag_sq, stats, W2dBm, fft_vec_to_stream)
         self.connect(fft_vec_to_stream, stream_to_stitch_vec, stitch)
@@ -277,11 +277,11 @@ class top_block(gr.top_block):
         else:
             self.resampler = None
 
-        self.u.set_samp_rate(hwrate)
+        self.usrp.set_samp_rate(hwrate)
         if self.resampler:
             self.sample_rate = rate
         else:
-            self.sample_rate = self.u.get_samp_rate()
+            self.sample_rate = self.usrp.get_samp_rate()
 
         # Pass the actual samp rate back to cfgs so they have it before
         # calling cfg.update()
@@ -299,7 +299,7 @@ class top_block(gr.top_block):
 
     def set_gain(self, gain):
         """Let UHD decide how to distribute gain."""
-        self.u.set_gain(gain)
+        self.usrp.set_gain(gain)
 
     def set_ADC_gain(self, gain):
         """Via uhd_usrp_probe:
@@ -307,38 +307,38 @@ class top_block(gr.top_block):
         Gain range digital: 0.0 to 6.0 step 0.5 dB
         Gain range fine: 0.0 to 0.5 step 0.1 dB
         """
-        max_digi = self.u.get_gain_range('ADC-digital').stop()
-        max_fine = self.u.get_gain_range('ADC-fine').stop()
+        max_digi = self.usrp.get_gain_range('ADC-digital').stop()
+        max_fine = self.usrp.get_gain_range('ADC-fine').stop()
         # crop to 0.0 - 6.0
         cropped = Decimal(str(max(0.0, min(max_digi, float(gain)))))
         mod = cropped % Decimal(max_fine)  # ex: 5.7 -> 0.2
         fine = round(mod, 1)               # get fine in terms steps of 0.1
         digi = float(cropped - mod)        # ex: 5.7 - 0.2 -> 5.5
-        self.u.set_gain(digi, 'ADC-digital')
-        self.u.set_gain(fine, 'ADC-fine')
+        self.usrp.set_gain(digi, 'ADC-digital')
+        self.usrp.set_gain(fine, 'ADC-fine')
 
         return (digi, fine) # return vals for testing
 
     def get_gain(self):
         """Return total ADC gain as float."""
-        return self.u.get_gain('ADC-digital') + self.u.get_gain('ADC-fine')
+        return self.usrp.get_gain('ADC-digital') + self.usrp.get_gain('ADC-fine')
 
     def get_gain_range(self, name=None):
         """Return a UHD meta range object for whole range or specific gain.
 
         Available gains: ADC-digital ADC-fine PGA0
         """
-        return self.u.get_gain_range(name if name else "")
+        return self.usrp.get_gain_range(name if name else "")
 
     def get_ADC_digital_gain(self):
-        return self.u.get_gain('ADC-digital')
+        return self.usrp.get_gain('ADC-digital')
 
     def get_ADC_fine_gain(self):
-        return self.u.get_gain('ADC-fine')
+        return self.usrp.get_gain('ADC-fine')
 
     def get_attenuation(self):
-        max_atten = self.u.get_gain_range('PGA0').stop()
-        return max_atten - self.u.get_gain('PGA0')
+        max_atten = self.usrp.get_gain_range('PGA0').stop()
+        return max_atten - self.usrp.get_gain('PGA0')
 
     def set_attenuation(self, atten):
         """Adjust level on Hittite HMC624LP4E Digital Attenuator.
@@ -350,8 +350,8 @@ class top_block(gr.top_block):
         Specs: Range 0 - 31.5 dB, 0.5 dB step
         NOTE: uhd driver handles range input for the attenuator
         """
-        max_atten = self.u.get_gain_range('PGA0').stop()
-        self.u.set_gain(max_atten - atten, 'PGA0')
+        max_atten = self.usrp.get_gain_range('PGA0').stop()
+        self.usrp.set_gain(max_atten - atten, 'PGA0')
 
 #   @staticmethod
 #   def _chunks(l, n):

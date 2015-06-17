@@ -67,7 +67,7 @@ namespace gr {
       size_t d_ncopied;           // total samples copied so far this segment
 
       // used for general flow control
-      gr::uhd::usrp_source* usrp_ptr;      // USRP source pointer
+      boost::shared_ptr<gr::uhd::usrp_source> usrp_ptr;      // USRP source pointer
       ::uhd::tune_result_t d_tune_result;
       std::vector<double> d_cfreqs_orig;
       std::deque<double> d_cfreqs_iter;
@@ -97,7 +97,7 @@ namespace gr {
                         WorkState& st);
 
     public:
-      controller_cc_impl(gr::uhd::usrp_source *usrp,
+      controller_cc_impl(boost::shared_ptr<gr::uhd::usrp_source> &usrp,
                          std::vector<double> center_freqs,
                          double lo_offset,
                          size_t initial_delay,

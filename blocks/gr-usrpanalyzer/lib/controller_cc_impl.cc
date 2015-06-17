@@ -39,7 +39,7 @@ namespace gr {
   namespace usrpanalyzer {
 
     controller_cc::sptr
-    controller_cc::make(gr::uhd::usrp_source *usrp,
+    controller_cc::make(boost::shared_ptr<gr::uhd::usrp_source> &usrp,
                         std::vector<double> center_freqs,
                         double lo_offset,
                         size_t initial_delay,
@@ -60,7 +60,7 @@ namespace gr {
     /*
      * The private constructor
      */
-    controller_cc_impl::controller_cc_impl(gr::uhd::usrp_source *usrp,
+    controller_cc_impl::controller_cc_impl(boost::shared_ptr<gr::uhd::usrp_source> &usrp,
                                            std::vector<double> center_freqs,
                                            double lo_offset,
                                            size_t initial_delay,
