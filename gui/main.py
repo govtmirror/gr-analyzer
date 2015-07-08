@@ -29,8 +29,9 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.ticker import FuncFormatter
 
-from gui import (tune_delay, averaging, export, frequency, gain, lotuning, marker,
-                 power, resolution, threshold, trigger, window, stream, span)
+from gui import (tune_delay, averaging, export, frequency, gain, lotuning,
+                 marker, power, resolution, threshold, trigger, window,
+                 stream, span)
 
 
 class wxpygui_frame(wx.Frame):
@@ -81,6 +82,8 @@ class wxpygui_frame(wx.Frame):
         self.canvas.mpl_connect('button_press_event', self.on_mousedown)
         self.canvas.mpl_connect('button_release_event', self.on_mouseup)
 
+        self.plot_background = None
+
         # Used to peak search within range
         self.span = None       # the actual matplotlib patch
         self.span_left = None  # left bound x coordinate
@@ -116,26 +119,26 @@ class wxpygui_frame(wx.Frame):
         usrpstate_row1.Add(self.stream_ctrls.layout, flag=wx.ALL, border=5)
 
         usrpstate_row2 = wx.BoxSizer(wx.HORIZONTAL)
-        usrpstate_row2.Add(
-            self.frequency_ctrls.layout,
-            proportion=1,
-            flag=wx.ALL,#|wx.EXPAND,
-            border=5
-        )
-        usrpstate_row2.Add(
-            self.span_ctrls.layout,
-            proportion=1,
-            flag=wx.ALL,#|wx.EXPAND,
-            border=5
-        )
+        usrpstate_row2.Add(self.frequency_ctrls.layout,
+                           proportion=1,
+                           flag=wx.ALL,#|wx.EXPAND,
+                           border=5)
+        usrpstate_row2.Add(self.span_ctrls.layout,
+                           proportion=1,
+                           flag=wx.ALL,#|wx.EXPAND,
+                           border=5)
 
         usrpstate_col1 = wx.BoxSizer(wx.VERTICAL)
         usrpstate_col1.Add(usrpstate_row1)
         usrpstate_col1.Add(usrpstate_row2, flag=wx.EXPAND)
 
         usrpstate_col2 = wx.BoxSizer(wx.VERTICAL)
-        usrpstate_col2.Add(self.gain_ctrls.layout, flag=wx.ALL, border=5)
-        usrpstate_col2.Add(self.lo_offset_ctrls.layout, flag=wx.ALL|wx.EXPAND, border=5)
+        usrpstate_col2.Add(self.gain_ctrls.layout,
+                           flag=wx.ALL,
+                           border=5)
+        usrpstate_col2.Add(self.lo_offset_ctrls.layout,
+                           flag=wx.ALL|wx.EXPAND,
+                           border=5)
 
         # col 1
         usrpstate_cluster.Add(usrpstate_col1)
@@ -148,26 +151,26 @@ class wxpygui_frame(wx.Frame):
         display_cluster = wx.StaticBoxSizer(display_outline, wx.HORIZONTAL)
 
         averagingbox = wx.BoxSizer(wx.HORIZONTAL)
-        averagingbox.Add(
-            self.averaging_ctrls.layout,
-            proportion=1,
-            flag=wx.ALL,
-            border=5
-        )
-        averagingbox.Add(
-            self.tune_delay_ctrls.layout,
-            proportion=1,
-            flag=wx.ALL,
-            border=5
-        )
+        averagingbox.Add(self.averaging_ctrls.layout,
+                         proportion=1,
+                         flag=wx.ALL,
+                         border=5)
+        averagingbox.Add(self.tune_delay_ctrls.layout,
+                         proportion=1,
+                         flag=wx.ALL,
+                         border=5)
 
         display_col1 = wx.BoxSizer(wx.VERTICAL)
         display_col1.Add(self.res_ctrls.layout, flag=wx.ALL, border=5)
         display_col1.Add(averagingbox, flag=wx.EXPAND)
 
         display_col2 = wx.BoxSizer(wx.VERTICAL)
-        display_col2.Add(self.windowfn_ctrls.layout, flag=wx.ALL, border=5)
-        display_col2.Add(self.power_ctrls.layout, flag=wx.ALL|wx.EXPAND, border=5)
+        display_col2.Add(self.windowfn_ctrls.layout,
+                         flag=wx.ALL,
+                         border=5)
+        display_col2.Add(self.power_ctrls.layout,
+                         flag=wx.ALL|wx.EXPAND,
+                         border=5)
 
         # col 1
         display_cluster.Add(display_col1)
@@ -193,21 +196,15 @@ class wxpygui_frame(wx.Frame):
         # put everything together
 
         # Add control clusters vertically to control stack
-        controlstack.Add(
-            usrpstate_cluster,
-            flag=wx.EXPAND | wx.LEFT | wx.RIGHT,
-            border=5
-        )
-        controlstack.Add(
-            display_cluster,
-            flag=wx.EXPAND | wx.LEFT | wx.RIGHT,
-            border=5
-        )
-        controlstack.Add(
-            data_cluster,
-            flag=wx.EXPAND | wx.LEFT | wx.RIGHT,
-            border=5
-        )
+        controlstack.Add(usrpstate_cluster,
+                         flag=wx.EXPAND | wx.LEFT | wx.RIGHT,
+                         border=5)
+        controlstack.Add(display_cluster,
+                         flag=wx.EXPAND | wx.LEFT | wx.RIGHT,
+                         border=5)
+        controlstack.Add(data_cluster,
+                         flag=wx.EXPAND | wx.LEFT | wx.RIGHT,
+                         border=5)
 
         # Add plot and control stack side-by-side on the front panel
         frontpanel.Add(self.plot, flag=wx.ALIGN_CENTER_VERTICAL)
@@ -245,17 +242,13 @@ class wxpygui_frame(wx.Frame):
                 self.line.remove()
 
             # initialize a line
-            self.line, = self.subplot.plot(
-                self.x,
-                y,
-                animated=True,
-                antialiased=True,
-                linestyle='-',
-                color='b'
-            )
+            self.line, = self.subplot.plot(self.x, y,
+                                           animated=True,
+                                           antialiased=True,
+                                           linestyle='-',
+                                           color='b')
 
         self.canvas.draw()
-        self.plot_background = None
         self._update_background()
 
     def format_axis(self):
@@ -267,8 +260,8 @@ class wxpygui_frame(wx.Frame):
 
         xaxis_formatter = FuncFormatter(self.format_mhz)
         ax.xaxis.set_major_formatter(xaxis_formatter)
-        ax.set_xlabel('Frequency (MHz)')
-        ax.set_ylabel('Power (dBm)')
+        ax.set_xlabel("Frequency (MHz)")
+        ax.set_ylabel("Power (dBm)")
         cf = self.tb.cfg.center_freq
         lowest_xtick = cf - (self.tb.cfg.span / 2)
         highest_xtick = cf + (self.tb.cfg.span / 2)
@@ -278,9 +271,11 @@ class wxpygui_frame(wx.Frame):
         ax.set_xticks(xticks)
         ax.set_yticks(np.arange(self.min_power, self.max_power, 10))
         ax.grid(color='.90', linestyle='-', linewidth=1)
-        ax.set_title('Power Spectrum Density')
+        ax.set_title("Power Spectrum Density")
 
         self.subplot = ax
+        self.canvas.draw()
+        self._update_background()
 
     @staticmethod
     def format_mhz(x, pos):
@@ -295,7 +290,7 @@ class wxpygui_frame(wx.Frame):
         """Update the plot."""
 
         if redraw_plot:
-            assert(not keep_alive)
+            #assert not keep_alive
             self.logger.debug("Reconfiguring matplotlib plot")
             self.format_axis()
             self.configure_mpl_plot(y)
@@ -312,6 +307,7 @@ class wxpygui_frame(wx.Frame):
             self._check_threshold(y)
 
         self._draw_span()
+        self._draw_threshold()
         self._draw_markers(y)
 
         # blit canvas
@@ -326,20 +322,21 @@ class wxpygui_frame(wx.Frame):
         if self.span is not None:
             self.subplot.draw_artist(self.span)
 
+    def _draw_threshold(self):
+        """Draw a span to bound the peak search functionality."""
+        if self.threshold.line is not None:
+            self.subplot.draw_artist(self.threshold.line)
+
     def _draw_line(self, y):
         """Draw the latest chunk of line data."""
-
         self.line.set_ydata(y)
         self.subplot.draw_artist(self.line)
 
     def _draw_markers(self, y):
         """Draw power markers at a specific frequency."""
-        # Update marker
-        m1bin = self.mkr1.bin_idx
-        m2bin = self.mkr2.bin_idx
-
         # Update mkr1 if it's set
         if self.mkr1.freq is not None:
+            m1bin = self.mkr1.bin_idx
             mkr1_power = y[m1bin]
             self.mkr1.point.set_ydata(mkr1_power)
             self.mkr1.point.set_visible(True) # make visible
@@ -354,6 +351,7 @@ class wxpygui_frame(wx.Frame):
 
         # Update mkr2 if it's set
         if self.mkr2.freq is not None:
+            m2bin = self.mkr2.bin_idx
             mkr2_power = y[m2bin]
             self.mkr2.point.set_ydata(mkr2_power)
             self.mkr2.point.set_visible(True) # make visible
@@ -396,11 +394,14 @@ class wxpygui_frame(wx.Frame):
     def on_mouseup(self, event):
         """Determine if mouse event was single click or click-and-drag."""
         if abs(self.last_click_evt.x - event.x) >= 5:
-            # moused moved more than 5 pxls, set a span
-            self.span = self.subplot.axvspan(
-                self.last_click_evt.xdata, event.xdata, color='red', alpha=0.2,
-                animated=True # "animated" makes span play nice with blitting
-            )
+            # mouse was clicked and dragged more than 5 pxls, set a span
+            self.span = self.subplot.axvspan(self.last_click_evt.xdata,
+                                             event.xdata,
+                                             color='red',
+                                             alpha=0.2,
+                                             # play nice with blitting:
+                                             animated=True)
+
             xdata_points = [self.last_click_evt.xdata, event.xdata]
             # always set left bound as lower value
             self.span_left, self.span_right = sorted(xdata_points)
@@ -447,31 +448,29 @@ class wxpygui_frame(wx.Frame):
                                   str(self.time_data_export_counter).zfill(2),
                                   '_',
                                   str(int(time.time())),
-                                  '.dat')
-            )
-            filepath_dialog = wx.FileDialog(
-                self,
-                message="Save As",
-                defaultDir=dirname,
-                defaultFile=fname,
-                wildcard="Data and Settings files (*.dat; *.mat)|*.dat;*.mat",
-                style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
-            )
+                                  '.dat'))
+            wildcard = "Data and Settings files (*.dat; *.mat)|*.dat;*.mat"
+            style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
+            filepath_dialog = wx.FileDialog(self,
+                                            message="Save As",
+                                            defaultDir=dirname,
+                                            defaultFile=fname,
+                                            wildcard=wildcard,
+                                            style=style)
 
             if filepath_dialog.ShowModal() == wx.ID_CANCEL:
                 return
 
-            export_thread = threading.Thread(
-                target=self.tb.save_time_data_to_file,
-                args=(filepath_dialog.GetPath(),)
-            )
+            export_fn = self.tb.save_time_data_to_file
+            export_args =(filepath_dialog.GetPath(),)
+            export_thread = threading.Thread(target=export_fn, args=export_args)
 
             self.time_data_export_counter += 1
             filepath_dialog.Destroy()
             export_thread.start()
 
     def export_fft_data(self, event):
-        if (self.tb.single_run.is_set() or self.tb.continuous_run.is_set()):
+        if self.tb.single_run.is_set() or self.tb.continuous_run.is_set():
             msg = "Can't export data while the flowgraph is running."
             msg += " Use \"single\" run mode."
             self.logger.error(msg)
@@ -490,22 +489,21 @@ class wxpygui_frame(wx.Frame):
                                   str(int(time.time())),
                                   '.dat')
             )
-            filepath_dialog = wx.FileDialog(
-                self,
-                message="Save As",
-                defaultDir=dirname,
-                defaultFile=fname,
-                wildcard="Data and Settings files (*.dat; *.mat)|*.dat;*.mat",
-                style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
-            )
+            wildcard = "Data and Settings files (*.dat; *.mat)|*.dat;*.mat"
+            style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
+            filepath_dialog = wx.FileDialog(self,
+                                            message="Save As",
+                                            defaultDir=dirname,
+                                            defaultFile=fname,
+                                            wildcard=wildcard,
+                                            style=style)
 
             if filepath_dialog.ShowModal() == wx.ID_CANCEL:
                 return
 
-            export_thread = threading.Thread(
-                target=self.tb.save_fft_data_to_file,
-                args=(filepath_dialog.GetPath(),)
-            )
+            export_fn = self.tb.save_fft_data_to_file
+            export_args = (filepath_dialog.GetPath(),)
+            export_thread = threading.Thread(target=export_fn, args=export_args)
 
             self.fft_data_export_counter += 1
             filepath_dialog.Destroy()

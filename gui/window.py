@@ -26,15 +26,14 @@ class windowfn_dropdown(wx.ComboBox):
         self.frame = frame
 
         window_strs = self.frame.tb.cfg.windows.keys()
-        wx.ComboBox.__init__(
-            self, frame, id=wx.ID_ANY,
-            choices=sorted(window_strs),
-            style=wx.CB_READONLY
-        )
+        wx.ComboBox.__init__(self,
+                             frame,
+                             id=wx.ID_ANY,
+                             choices=sorted(window_strs),
+                             style=wx.CB_READONLY)
 
         # Size the dropdown based on longest string
-        width, height = self.GetSize()
-        dc = wx.ClientDC(self)
+        width, height = self.GetSize(dc = wx.ClientDC(self)
         tsize = max(dc.GetTextExtent(s)[0] for s in window_strs)
         self.SetMinSize((tsize+50, height))
 

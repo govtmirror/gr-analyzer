@@ -17,25 +17,23 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import sys
 import math
 import time
 import threading
 import logging
 import numpy as np
-import itertools
 from copy import copy
 from decimal import Decimal
 
 from gnuradio import gr
 from gnuradio import blocks
-from gnuradio.filter import fractional_resampler_cc
 from gnuradio import fft
 from gnuradio import uhd
 
-from usrpanalyzer import (
-    controller_cc, bin_statistics_ff, stitch_fft_segments_ff
-)
+from usrpanalyzer import (controller_cc,
+                          bin_statistics_ff,
+                          stitch_fft_segments_ff)
+
 from blocks.plotter_f import plotter_f
 from configuration import configuration
 from parser import init_parser
@@ -61,22 +59,16 @@ class top_block(gr.top_block):
             if r != gr.RT_OK:
                 self.logger.warning("failed to enable realtime scheduling")
 
-        self.stream_args = uhd.stream_args(
-            cpu_format=cfg.cpu_format,
-            otw_format=cfg.wire_format,
-            args=cfg.stream_args
-        )
+        self.stream_args = uhd.stream_args(cpu_format=cfg.cpu_format,
+                                           otw_format=cfg.wire_format,
+                                           args=cfg.stream_args)
 
-        self.usrp = uhd.usrp_source(
-            device_addr=cfg.device_addr,
-            stream_args=self.stream_args
-        )
+        self.usrp = uhd.usrp_source(device_addr=cfg.device_addr,
+                                    stream_args=self.stream_args)
         self.usrp.set_auto_dc_offset(False)
 
-        self.sample_rates = np.array(
-            [r.start() for r in self.usrp.get_samp_rates().iterator()],
-            dtype=np.float
-        )
+        rates = self.usrp.get_samp_rates().iterator()
+        self.sample_rates = np.array([r.start() for r in rates], dtype=np.float)
 
         # Default to 0 gain, full attenuation
         if cfg.gain is None:
@@ -140,16 +132,15 @@ class top_block(gr.top_block):
         self.lock()
         if not initial:
             self.disconnect_all()
-            self.msg_disconnect(self.plot, "gui_busy_notifier", self.copy_if_gui_idle, "en")
+            self.msg_disconnect(self.plot, "gui_busy_notifier",
+                                self.copy_if_gui_idle, "en")
 
         # Apply any pending configuration changes
         cfg = self.cfg = copy(self.pending_cfg)
 
-        self.stream_args = uhd.stream_args(
-            cpu_format=cfg.cpu_format,
-            otw_format=cfg.wire_format,
-            args=cfg.stream_args
-        )
+        self.stream_args = uhd.stream_args(cpu_format=cfg.cpu_format,
+                                           otw_format=cfg.wire_format,
+                                           args=cfg.stream_args)
 
         if self.reset_stream_args:
             self.usrp.set_stream_args(self.stream_args)
@@ -165,33 +156,28 @@ class top_block(gr.top_block):
         self.resampler = None
         self.set_sample_rate(cfg.sample_rate)
 
-        self.ctrl = controller_cc(
-            self.usrp,
-            cfg.center_freqs,
-            cfg.lo_offset,
-            cfg.skip_initial,
-            cfg.tune_delay,
-            cfg.fft_size * cfg.n_averages,
-        )
+        self.ctrl = controller_cc(self.usrp,
+                                  cfg.center_freqs,
+                                  cfg.lo_offset,
+                                  cfg.skip_initial,
+                                  cfg.tune_delay,
+                                  cfg.fft_size * cfg.n_averages)
 
-        stream_to_fft_vec = blocks.stream_to_vector(
-            gr.sizeof_gr_complex, cfg.fft_size
-        )
+        stream_to_fft_vec = blocks.stream_to_vector(gr.sizeof_gr_complex,
+                                                    cfg.fft_size)
 
         forward = True
         shift = True
-        self.fft = fft.fft_vcc(
-            cfg.fft_size,
-            forward,
-            cfg.window_coefficients,
-            shift
-        )
+        self.fft = fft.fft_vcc(cfg.fft_size,
+                               forward,
+                               cfg.window_coefficients,
+                               shift)
 
         c2mag_sq = blocks.complex_to_mag_squared(cfg.fft_size)
 
         stats = bin_statistics_ff(cfg.fft_size, cfg.n_averages)
 
-        power = sum(tap*tap for tap in cfg.window_coefficients)
+        power = sum(tap * tap for tap in cfg.window_coefficients)
 
         # Divide magnitude-square by a constant to obtain power
         # in Watts. Assumes unit of USRP source is volts.
@@ -200,21 +186,21 @@ class top_block(gr.top_block):
         # Convert from Watts to dBm.
         W2dBm = blocks.nlog10_ff(10.0, cfg.fft_size, 30 + Vsq2W_dB)
 
-        stitch = stitch_fft_segments_ff(
-            cfg.fft_size,
-            cfg.n_segments,
-            cfg.overlap
-        )
+        stitch = stitch_fft_segments_ff(cfg.fft_size,
+                                        cfg.n_segments,
+                                        cfg.overlap)
 
-        fft_vec_to_stream = blocks.vector_to_stream(gr.sizeof_float, cfg.fft_size)
+        fft_vec_to_stream = blocks.vector_to_stream(gr.sizeof_float,
+                                                    cfg.fft_size)
         n_valid_bins = cfg.fft_size - (cfg.fft_size * (cfg.overlap / 2) * 2)
         #FIXME: think about whether to cast to int vs round vs...
         stitch_vec_len = int(cfg.n_segments * cfg.fft_size)
-        stream_to_stitch_vec = blocks.stream_to_vector(gr.sizeof_float, stitch_vec_len)
+        stream_to_stitch_vec = blocks.stream_to_vector(gr.sizeof_float,
+                                                       stitch_vec_len)
 
         plot_vec_len = int(cfg.n_segments * n_valid_bins)
 
-        # Only copy sample to plot if enabled to keep from overwhelming gui thread
+        # Only copy sample to plot if enabled to avoid overwhelming gui thread
         self.copy_if_gui_idle = blocks.copy(gr.sizeof_float * plot_vec_len)
 
         self.plot = plotter_f(self, plot_vec_len)
@@ -342,7 +328,6 @@ def main(tb):
         tb.clear_single_run()
 
         if tb.continuous_run.is_set() and not tb.plot_iface.is_alive():
-            # FIXME: this isn't fool-proof
             # GUI was destroyed while in continuous mode
             return
 

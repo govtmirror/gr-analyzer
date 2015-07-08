@@ -26,45 +26,53 @@ import utils
 class mkr_peaksearch_btn(wx.Button):
     """A button to move the marker to the current peak power."""
     def __init__(self, frame, marker, txtctrl):
-        wx.Button.__init__(
-            self, frame, wx.ID_ANY, "Peak", style=wx.BU_EXACTFIT
-        )
-        self.Bind(
-            wx.EVT_BUTTON, lambda evt, txt=txtctrl: marker.peak_search(evt, txt)
-        )
+        wx.Button.__init__(self,
+                           frame,
+                           wx.ID_ANY,
+                           "Peak",
+                           style=wx.BU_EXACTFIT)
+
+        self.Bind(wx.EVT_BUTTON,
+                  lambda evt, txt=txtctrl: marker.peak_search(evt, txt))
 
 
 class mkr_left_btn(wx.Button):
     """A button to step the marker one bin to the left."""
     def __init__(self, frame, marker, txtctrl, label):
-        wx.Button.__init__(
-            self, frame, wx.ID_ANY, label=label, style=wx.BU_EXACTFIT
-        )
-        self.Bind(
-            wx.EVT_BUTTON, lambda evt, txt=txtctrl: marker.step_left(evt, txt)
-        )
+        wx.Button.__init__(self,
+                           frame,
+                           wx.ID_ANY,
+                           label=label,
+                           style=wx.BU_EXACTFIT)
+
+        self.Bind(wx.EVT_BUTTON,
+                  lambda evt, txt=txtctrl: marker.step_left(evt, txt))
 
 
 class mkr_right_btn(wx.Button):
     """A button to step the marker one bin to the right."""
     def __init__(self, frame, marker, txtctrl, label):
-        wx.Button.__init__(
-            self, frame, wx.ID_ANY, label=label, style=wx.BU_EXACTFIT
-        )
-        self.Bind(
-            wx.EVT_BUTTON, lambda evt, txt=txtctrl: marker.step_right(evt, txt)
-        )
+        wx.Button.__init__(self,
+                           frame,
+                           wx.ID_ANY,
+                           label=label,
+                           style=wx.BU_EXACTFIT)
+
+        self.Bind(wx.EVT_BUTTON,
+                  lambda evt, txt=txtctrl: marker.step_right(evt, txt))
 
 
 class mkr_clear_btn(wx.Button):
     """A button to clear the marker."""
     def __init__(self, frame, marker, txtctrl):
-        wx.Button.__init__(
-            self, frame, wx.ID_ANY, "Clear", style=wx.BU_EXACTFIT
-        )
-        self.Bind(
-            wx.EVT_BUTTON, lambda evt, txt=txtctrl: marker.clear(evt, txt)
-        )
+        wx.Button.__init__(self,
+                           frame,
+                           wx.ID_ANY,
+                           "Clear",
+                           style=wx.BU_EXACTFIT)
+
+        self.Bind(wx.EVT_BUTTON,
+                  lambda evt, txt=txtctrl: marker.clear(evt, txt))
 
 
 class mkr_txtctrl(wx.TextCtrl):
@@ -94,6 +102,7 @@ class marker(object):
         """Find the index of the closest matching value in an array."""
         bin_freqs = self.frame.tb.cfg.bin_freqs
         idx = self.frame.tb.cfg.find_nearest(bin_freqs, value)
+
         return (idx, bin_freqs[idx])
 
     def unplot(self):
@@ -142,39 +151,36 @@ class marker(object):
     def plot(self):
         """Plot the marker and related text."""
         mkr_num = "MKR{}".format(self.n) # self.n is set to 1 or 2
-        label = mkr_num + '\n ' + self.get_freq_str() + ' ' + self.units
+        label = mkr_num + "\n " + self.get_freq_str() + " " + self.units
 
         mkr_xcoords = [0, 0.15, 0.77]
 
         if self.point is None:
-            self.point, = self.frame.subplot.plot(
-                [self.freq], # x value
-                [0], # temp y value, update_line will adjust with each sweep
-                marker = self.shape,
-                markerfacecolor = self.color,
-                markersize = self.size,
-                zorder = 99,  # draw it above the grid lines
-                animated = True,
-                visible = False # marker is invisible until update_line sets y
-            )
-            self.text_label = self.frame.figure.text(
-                mkr_xcoords[self.n], # x
-                0.83, # y
-                label, # static text to display
-                color = 'green',
-                animated = True,
-                visible = False,
-                size = 11
-            )
-            self.text_power = self.frame.figure.text(
-                mkr_xcoords[self.n], # x
-                0.80, # y location
-                "", # update_plot replaces this text
-                color = 'green',
-                visible = False,
-                animated = True,
-                size = 11
-            )
+            self.point, = self.frame.subplot.plot([self.freq], # x value
+                                                  [0], # set by update_line
+                                                  marker=self.shape,
+                                                  markerfacecolor=self.color,
+                                                  markersize=self.size,
+                                                  # draw above grid lines:
+                                                  zorder=99,
+                                                  animated=True,
+                                                  visible=False)
+
+            self.text_label = self.frame.figure.text(mkr_xcoords[self.n], # x
+                                                     0.83, # y
+                                                     label,
+                                                     color='green',
+                                                     animated=True,
+                                                     visible=False,
+                                                     size=11)
+
+            self.text_power = self.frame.figure.text(mkr_xcoords[self.n], # x
+                                                     0.80, # y location
+                                                     "", # set by update_plot
+                                                     color='green',
+                                                     visible=False,
+                                                     animated=True,
+                                                     size=11)
         else:
             self.point.set_xdata([self.freq])
             self.text_label.set_text(label)
@@ -232,36 +238,30 @@ class mkr1_ctrls(object):
         mkr1_txtctrl = mkr_txtctrl(frame, mkr1, 1)
         mkr1_box = wx.StaticBox(frame, wx.ID_ANY, "Marker 1 (MHz)")
         self.layout = wx.StaticBoxSizer(mkr1_box, wx.VERTICAL)
-        self.layout.Add(
-            mkr_peaksearch_btn(frame, mkr1, mkr1_txtctrl),
-            proportion=0,
-            flag=wx.ALL|wx.ALIGN_CENTER,
-            border=5
-        )
+        self.layout.Add(mkr_peaksearch_btn(frame, mkr1, mkr1_txtctrl),
+                        proportion=0,
+                        flag=wx.ALL|wx.ALIGN_CENTER,
+                        border=5)
+
         mkr1_hbox = wx.BoxSizer(wx.HORIZONTAL)
-        mkr1_hbox.Add(
-            mkr_left_btn(frame, mkr1, mkr1_txtctrl, '<'),
-            flag=wx.LEFT,
-            border=5
-        )
-        mkr1_hbox.Add(
-            mkr1_txtctrl,
-            proportion=1,
-            flag=wx.EXPAND,
-            border=1
-        )
-        mkr1_hbox.Add(
-            mkr_right_btn(frame, mkr1, mkr1_txtctrl, '>'),
-            flag=wx.RIGHT,
-            border=5
-        )
+        mkr1_hbox.Add(mkr_left_btn(frame, mkr1, mkr1_txtctrl, '<'),
+                      flag=wx.LEFT,
+                      border=5)
+
+        mkr1_hbox.Add(mkr1_txtctrl,
+                      proportion=1,
+                      flag=wx.EXPAND,
+                      border=1)
+
+        mkr1_hbox.Add(mkr_right_btn(frame, mkr1, mkr1_txtctrl, '>'),
+                      flag=wx.RIGHT,
+                      border=5)
+
         self.layout.Add(mkr1_hbox, flag=wx.ALIGN_CENTER)
-        self.layout.Add(
-            mkr_clear_btn(frame, mkr1, mkr1_txtctrl),
-            proportion=0,
-            flag=wx.ALL|wx.ALIGN_CENTER,
-            border=5
-        )
+        self.layout.Add(mkr_clear_btn(frame, mkr1, mkr1_txtctrl),
+                        proportion=0,
+                        flag=wx.ALL|wx.ALIGN_CENTER,
+                        border=5)
 
 
 class mkr2_ctrls(object):
@@ -271,33 +271,27 @@ class mkr2_ctrls(object):
         mkr2_txtctrl = mkr_txtctrl(frame, mkr2, 2)
         mkr2_box = wx.StaticBox(frame, wx.ID_ANY, "Marker 2 (MHz)")
         self.layout = wx.StaticBoxSizer(mkr2_box, wx.VERTICAL)
-        self.layout.Add(
-            mkr_peaksearch_btn(frame, mkr2, mkr2_txtctrl),
-            proportion=0,
-            flag=wx.ALL|wx.ALIGN_CENTER,
-            border=5
-        )
+        self.layout.Add(mkr_peaksearch_btn(frame, mkr2, mkr2_txtctrl),
+                        proportion=0,
+                        flag=wx.ALL|wx.ALIGN_CENTER,
+                        border=5)
+
         mkr2_hbox = wx.BoxSizer(wx.HORIZONTAL)
-        mkr2_hbox.Add(
-            mkr_left_btn(frame, mkr2, mkr2_txtctrl, '<'),
-            flag=wx.LEFT,
-            border=5
-        )
-        mkr2_hbox.Add(
-            mkr2_txtctrl,
-            proportion=1,
-            flag=wx.EXPAND,
-            border=1
-        )
-        mkr2_hbox.Add(
-            mkr_right_btn(frame, mkr2, mkr2_txtctrl, '>'),
-            flag=wx.RIGHT,
-            border=5
-        )
+        mkr2_hbox.Add(mkr_left_btn(frame, mkr2, mkr2_txtctrl, '<'),
+                      flag=wx.LEFT,
+                      border=5)
+
+        mkr2_hbox.Add(mkr2_txtctrl,
+                      proportion=1,
+                      flag=wx.EXPAND,
+                      border=1)
+
+        mkr2_hbox.Add(mkr_right_btn(frame, mkr2, mkr2_txtctrl, '>'),
+                      flag=wx.RIGHT,
+                      border=5)
+
         self.layout.Add(mkr2_hbox, flag=wx.ALIGN_CENTER)
-        self.layout.Add(
-            mkr_clear_btn(frame, mkr2, mkr2_txtctrl),
-            proportion=0,
-            flag=wx.ALL|wx.ALIGN_CENTER,
-            border=5
-        )
+        self.layout.Add(mkr_clear_btn(frame, mkr2, mkr2_txtctrl),
+                        proportion=0,
+                        flag=wx.ALL|wx.ALIGN_CENTER,
+                        border=5)

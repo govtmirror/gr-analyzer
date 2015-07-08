@@ -23,9 +23,12 @@ import wx
 class lo_offset_txtctrl(wx.TextCtrl):
     """Input TxtCtrl for adjusting the LO offset."""
     def __init__(self, frame):
-        wx.TextCtrl.__init__(
-            self, frame, id=wx.ID_ANY, size=(60, -1), style=wx.TE_PROCESS_ENTER
-        )
+        wx.TextCtrl.__init__(self,
+                             frame,
+                             id=wx.ID_ANY,
+                             size=(60, -1),
+                             style=wx.TE_PROCESS_ENTER)
+
         self.frame = frame
         self.Bind(wx.EVT_KILL_FOCUS, self.update)
         self.Bind(wx.EVT_TEXT_ENTER, self.update)
@@ -51,7 +54,6 @@ class lo_offset_txtctrl(wx.TextCtrl):
 
 class ctrls(object):
     def __init__(self, frame):
-
         """Initialize gui controls for lo offset."""
         lo_box = wx.StaticBox(frame, wx.ID_ANY, "LO Offset (MHz)")
         self.lo_offset_txtctrl = lo_offset_txtctrl(frame)

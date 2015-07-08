@@ -21,6 +21,7 @@ import threading
 
 from gui.main import wxpygui_frame
 
+
 class plot_interface(object):
     def __init__(self, tb):
         self.tb = tb
@@ -44,16 +45,16 @@ class plot_interface(object):
         try:
             if self.app.frame.closed:
                 return False
-            wx.CallAfter( # thread-safe call to wx gui
-                self.app.frame.update_plot,
-                points,
-                redraw,
-                keep_alive
-            )
+            # thread-safe call to wx gui
+            wx.CallAfter(self.app.frame.update_plot,
+                         points,
+                         redraw,
+                         keep_alive)
+
             if redraw:
                 self.redraw_plot.clear()
             return True
-        except wx._core.PyDeadObjectError:
+        except wx.PyDeadObjectError:
             return False
 
     def is_alive(self):
@@ -61,7 +62,7 @@ class plot_interface(object):
             if self.app.frame.closed:
                 return False
             return True
-        except wx._core.PyDeadObjectError:
+        except wx.PyDeadObjectError:
             return False
 
     def set_gui_idle(self):

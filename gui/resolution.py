@@ -25,9 +25,12 @@ import utils
 class sample_rate_txtctrl(wx.TextCtrl):
     """Input TxtCtrl for setting a new sample rate"""
     def __init__(self, frame, rbw_txt):
-        wx.TextCtrl.__init__(
-            self, frame, id=wx.ID_ANY, size=(60, -1), style=wx.TE_PROCESS_ENTER
-        )
+        wx.TextCtrl.__init__(self,
+                             frame,
+                             id=wx.ID_ANY,
+                             size=(60, -1),
+                             style=wx.TE_PROCESS_ENTER)
+
         self.frame = frame
         self.rbw_txt = rbw_txt
         self.Bind(wx.EVT_KILL_FOCUS, self.update)
@@ -45,7 +48,7 @@ class sample_rate_txtctrl(wx.TextCtrl):
             return
 
         otw_format = self.frame.tb.pending_cfg.wire_format
-        if otw_format == "sc16" and float_val >= 25e6:
+        if otw_format == 'sc16' and float_val >= 25e6:
             # That makes USRP very unhappy
             float_val = 25e6
 
@@ -62,9 +65,8 @@ class sample_rate_txtctrl(wx.TextCtrl):
         self.set_value()
 
     def set_value(self):
-        self.SetValue(
-            self.format_str.format(self.frame.tb.pending_cfg.sample_rate / 1e6)
-        )
+        value = self.frame.tb.pending_cfg.sample_rate / 1e6
+        self.SetValue(self.format_str.format(value))
 
 
 class rbw_statictxt(wx.StaticText):
@@ -83,9 +85,12 @@ class rbw_statictxt(wx.StaticText):
 class fftsize_txtctrl(wx.TextCtrl):
     """Input TxtCtrl for setting a new fft size."""
     def __init__(self, frame, rbw_txt):
-        wx.TextCtrl.__init__(
-            self, frame, id=wx.ID_ANY, size=(60, -1), style=wx.TE_PROCESS_ENTER
-        )
+        wx.TextCtrl.__init__(self,
+                             frame,
+                             id=wx.ID_ANY,
+                             size=(60, -1),
+                             style=wx.TE_PROCESS_ENTER)
+
         self.frame = frame
         self.rbw_txt = rbw_txt
         self.Bind(wx.EVT_KILL_FOCUS, self.update)
@@ -127,38 +132,28 @@ class ctrls(object):
         samp_rate_txt = sample_rate_txtctrl(frame, rbw_txt)
         fft_label_txt = wx.StaticText(frame, wx.ID_ANY, "FFT size (bins): ")
         fft_txt = fftsize_txtctrl(frame, rbw_txt)
-        grid.Add(
-            samp_rate_label_txt,
-            proportion=0,
-            flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL
-        )
-        grid.Add(
-            samp_rate_txt,
-            proportion=0,
-            flag=wx.ALIGN_RIGHT
-        )
-        grid.Add(
-            fft_label_txt,
-            proportion=0,
-            flag=wx.ALIGN_LEFT|wx.TOP|wx.ALIGN_CENTER_VERTICAL,
-            border=5
-        )
-        grid.Add(
-            fft_txt,
-            proportion=0,
-            flag=wx.ALIGN_RIGHT|wx.TOP,
-            border=5
-        )
-        grid.Add(
-            rbw_label_txt,
-            proportion=0,
-            flag=wx.ALIGN_LEFT|wx.TOP|wx.ALIGN_CENTER_VERTICAL,
-            border=5
-        )
-        grid.Add(
-            rbw_txt,
-            proportion=0,
-            flag=wx.ALIGN_RIGHT|wx.TOP|wx.ALIGN_CENTER_VERTICAL,
-            border=5
-        )
+
+        grid.Add(samp_rate_label_txt,
+                 proportion=0,
+                 flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(samp_rate_txt,
+                 proportion=0,
+                 flag=wx.ALIGN_RIGHT)
+        grid.Add(fft_label_txt,
+                 proportion=0,
+                 flag=wx.ALIGN_LEFT|wx.TOP|wx.ALIGN_CENTER_VERTICAL,
+                 border=5)
+        grid.Add(fft_txt,
+                 proportion=0,
+                 flag=wx.ALIGN_RIGHT|wx.TOP,
+                 border=5)
+        grid.Add(rbw_label_txt,
+                 proportion=0,
+                 flag=wx.ALIGN_LEFT|wx.TOP|wx.ALIGN_CENTER_VERTICAL,
+                 border=5)
+        grid.Add(rbw_txt,
+                 proportion=0,
+                 flag=wx.ALIGN_RIGHT|wx.TOP|wx.ALIGN_CENTER_VERTICAL,
+                 border=5)
+
         self.layout.Add(grid, flag=wx.ALL, border=5)

@@ -23,9 +23,12 @@ import wx
 class atten_txtctrl(wx.TextCtrl):
     """Input TextCtrl for setting attenuation."""
     def __init__(self, frame):
-        wx.TextCtrl.__init__(
-            self, frame, id=wx.ID_ANY, size=(60, -1) , style=wx.TE_PROCESS_ENTER
-        )
+        wx.TextCtrl.__init__(self,
+                             frame,
+                             id=wx.ID_ANY,
+                             size=(60, -1),
+                             style=wx.TE_PROCESS_ENTER)
+
         self.frame = frame
         self.Bind(wx.EVT_KILL_FOCUS, self.update)
         self.Bind(wx.EVT_TEXT_ENTER, self.update)
@@ -52,9 +55,12 @@ class atten_txtctrl(wx.TextCtrl):
 class ADC_digi_txtctrl(wx.TextCtrl):
     """Input TxtCtrl for setting ADC digital gain."""
     def __init__(self, frame):
-        wx.TextCtrl.__init__(
-            self, frame, wx.ID_ANY, size=(60, -1), style=wx.TE_PROCESS_ENTER
-        )
+        wx.TextCtrl.__init__(self,
+                             frame,
+                             wx.ID_ANY,
+                             size=(60, -1),
+                             style=wx.TE_PROCESS_ENTER)
+
         self.frame = frame
         self.Bind(wx.EVT_KILL_FOCUS, self.update)
         self.Bind(wx.EVT_TEXT_ENTER, self.update)
@@ -89,9 +95,9 @@ class ctrls(object):
         atten_txt = wx.StaticText(frame, wx.ID_ANY, "Atten: ")
         atten_hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.atten_txtctrl = atten_txtctrl(frame)
-        atten_hbox.Add(
-            self.atten_txtctrl, flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL
-        )
+        atten_hbox.Add(self.atten_txtctrl,
+                       flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+
         # ADC digi gain
         ADC_txt = wx.StaticText(frame, wx.ID_ANY, "ADC digi: ")
         grid.Add(atten_txt, flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)

@@ -23,9 +23,12 @@ import wx
 class span_txtctrl(wx.TextCtrl):
     """Input TxtCtrl for adjusting the span."""
     def __init__(self, frame):
-        wx.TextCtrl.__init__(
-            self, frame, id=wx.ID_ANY, size=(60, -1), style=wx.TE_PROCESS_ENTER
-        )
+        wx.TextCtrl.__init__(self,
+                             frame,
+                             id=wx.ID_ANY,
+                             size=(60, -1),
+                             style=wx.TE_PROCESS_ENTER)
+
         self.frame = frame
         self.Bind(wx.EVT_KILL_FOCUS, self.update)
         self.Bind(wx.EVT_TEXT_ENTER, self.update)
@@ -58,17 +61,19 @@ class span_txtctrl(wx.TextCtrl):
         self.set_value()
 
     def set_value(self):
-        self.SetValue(
-            self.format_str.format(self.frame.tb.pending_cfg.span / 1e6)
-        )
+        value = self.frame.tb.pending_cfg.span / 1e6
+        self.SetValue(self.format_str.format(value))
 
 
 class span_reset_btn(wx.Button):
     """A button to export I/Q data to a file."""
     def __init__(self, frame, span_txtctrl):
-        wx.Button.__init__(
-            self, frame, wx.ID_ANY, label="Reset", style=wx.BU_EXACTFIT
-        )
+        wx.Button.__init__(self,
+                           frame,
+                           wx.ID_ANY,
+                           label="Reset",
+                           style=wx.BU_EXACTFIT)
+
         self.Bind(wx.EVT_BUTTON, span_txtctrl.set_default)
 
 

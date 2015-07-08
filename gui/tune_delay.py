@@ -23,12 +23,14 @@ import wx
 class tune_delay_txtctrl(wx.TextCtrl):
     """Input TxtCtrl for adjusting number of disgarded samples."""
     def __init__(self, frame):
-        wx.TextCtrl.__init__(
-            self, frame, id=wx.ID_ANY, size=(60, -1), style=wx.TE_PROCESS_ENTER
-        )
+        wx.TextCtrl.__init__(self,
+                             frame,
+                             id=wx.ID_ANY,
+                             size=(60, -1),
+                             style=wx.TE_PROCESS_ENTER)
+
         self.frame = frame
-        self.Bind(wx.EVT_KILL_FOCUS, self.update)
-        self.Bind(wx.EVT_TEXT_ENTER, self.update)
+        self.Bind(self.Bind(wx.EVT_TEXT_ENTER, self.update)
         self.set_value()
 
     def update(self, event):

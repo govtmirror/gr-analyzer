@@ -23,18 +23,23 @@ import wx
 class continuous_run_btn(wx.Button):
     """A button to run the flowgraph continuously."""
     def __init__(self, frame):
-        wx.Button.__init__(
-            self, frame, wx.ID_ANY, label="Continuous"#, style=wx.BU_EXACTFIT
-        )
+        wx.Button.__init__(self,
+                           frame,
+                           wx.ID_ANY,
+                           label="Continuous")
+
         self.Bind(wx.EVT_BUTTON, frame.set_continuous_run)
 
 
 class single_run_btn(wx.Button):
     """A button to run the flowgraph once and pause."""
     def __init__(self, frame):
-        wx.Button.__init__(
-            self, frame, wx.ID_ANY, label="Single"#, style=wx.BU_EXACTFIT
-        )
+        wx.Button.__init__(self,
+                           frame,
+                           wx.ID_ANY,
+                           label="Single",
+                           style=wx.BU_EXACTFIT)
+
         self.Bind(wx.EVT_BUTTON, frame.set_single_run)
 
 

@@ -26,23 +26,21 @@ class wirefmt_dropdown(wx.ComboBox):
         self.frame = frame
         self.args_txtctrl = args
 
-        formats = ("sc8", "sc16")
+        formats = ('sc8', 'sc16')
 
-        wx.ComboBox.__init__(
-            self, frame, id=wx.ID_ANY,
-            choices=formats,
-            style=wx.CB_READONLY
-        )
+        wx.ComboBox.__init__(self,
+                             frame,
+                             id=wx.ID_ANY,
+                             choices=formats,
+                             style=wx.CB_READONLY)
 
         # Size the dropdown based on longest string
-        width, height = self.GetSize()
+        _, height = self.GetSize()
         dc = wx.ClientDC(self)
         tsize = max(dc.GetTextExtent(s)[0] for s in formats)
         self.SetMinSize((tsize+45, height))
 
-        self.SetStringSelection(
-            self.frame.tb.cfg.wire_format
-        )
+        self.SetStringSelection(self.frame.tb.cfg.wire_format)
         self.Bind(wx.EVT_COMBOBOX, self.update)
 
     def update(self, event):
@@ -51,7 +49,7 @@ class wirefmt_dropdown(wx.ComboBox):
         self.frame.tb.pending_cfg.set_wire_format(fmt)
         self.frame.tb.reconfigure(reset_stream_args=True)
 
-        if fmt == "sc8":
+        if fmt == 'sc8':
             self.args_txtctrl.Enable(True)
         else:
             self.args_txtctrl.Enable(False)
@@ -60,15 +58,18 @@ class wirefmt_dropdown(wx.ComboBox):
 class args_txtctrl(wx.TextCtrl):
     """Input TextCtrl for setting stream args."""
     def __init__(self, frame):
-        wx.TextCtrl.__init__(
-            self, frame, id=wx.ID_ANY, size=(60, -1) , style=wx.TE_PROCESS_ENTER
-        )
+        wx.TextCtrl.__init__(self,
+                             frame,
+                             id=wx.ID_ANY,
+                             size=(60, -1),
+                             style=wx.TE_PROCESS_ENTER)
+
         self.frame = frame
         self.Bind(wx.EVT_KILL_FOCUS, self.update)
         self.Bind(wx.EVT_TEXT_ENTER, self.update)
         self.SetValue(frame.tb.cfg.stream_args)
 
-        if frame.tb.cfg.wire_format != "sc8":
+        if frame.tb.cfg.wire_format != 'sc8':
             self.Enable(False)
 
     def update(self, event):
@@ -91,26 +92,20 @@ class ctrls(object):
         self.args_txt = args_txtctrl(frame)
         wirefmt_label_txt = wx.StaticText(frame, wx.ID_ANY, "Wire Fmt: ")
         self.wirefmt_dd = wirefmt_dropdown(frame, self.args_txt)
-        grid.Add(
-            wirefmt_label_txt,
-            proportion=0,
-            flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL
-        )
-        grid.Add(
-            self.wirefmt_dd,
-            proportion=0,
-            flag=wx.ALIGN_RIGHT
-        )
-        grid.Add(
-            args_label_txt,
-            proportion=0,
-            flag=wx.ALIGN_LEFT|wx.TOP|wx.ALIGN_CENTER_VERTICAL,
-            border=5
-        )
-        grid.Add(
-            self.args_txt,
-            proportion=1,
-            flag=wx.ALIGN_RIGHT|wx.TOP|wx.EXPAND,
-            border=5
-        )
+
+        grid.Add(wirefmt_label_txt,
+                 proportion=0,
+                 flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.wirefmt_dd,
+                 proportion=0,
+                 flag=wx.ALIGN_RIGHT)
+        grid.Add(args_label_txt,
+                 proportion=0,
+                 flag=wx.ALIGN_LEFT|wx.TOP|wx.ALIGN_CENTER_VERTICAL,
+                 border=5)
+        grid.Add(self.args_txt,
+                 proportion=1,
+                 flag=wx.ALIGN_RIGHT|wx.TOP|wx.EXPAND,
+                 border=5)
+
         self.layout.Add(grid, flag=wx.ALL, border=5)
