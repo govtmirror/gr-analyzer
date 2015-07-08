@@ -23,9 +23,12 @@ import wx
 class threshold_txtctrl(wx.TextCtrl):
     """Input TxtCtrl for setting a threshold power level."""
     def __init__(self, frame):
-        wx.TextCtrl.__init__(
-            self, frame, id=wx.ID_ANY, size=(60, -1), style=wx.TE_PROCESS_ENTER
-        )
+        wx.TextCtrl.__init__(self,
+                             frame,
+                             id=wx.ID_ANY,
+                             size=(60, -1),
+                             style=wx.TE_PROCESS_ENTER)
+
         self.Bind(wx.EVT_KILL_FOCUS, frame.threshold.set_level)
         self.Bind(wx.EVT_TEXT_ENTER, frame.threshold.set_level)
         if frame.threshold.level:
@@ -36,42 +39,43 @@ class threshold(object):
     """A horizontal line to indicate user-defined overload threshold."""
     def __init__(self, frame, level):
         self.frame = frame
-        self.lines = []
+        self.line = None
         self.level = level # default level in dBm or None
+
+    def plot(self):
+        # plot the new threshold and add it to our blitted background
+        f_min = self.frame.tb.cfg.min_freq
+        f_max = self.frame.tb.cfg.max_freq
+        xs = [f_min - 1e7, f_max + 1e7]
+        ys = [self.level] * 2
+        self.line, = self.frame.subplot.plot(xs, ys,
+                                             color='red',
+                                             # play nice with blitting:
+                                             animated=True,
+                                             # draw above grid lines:
+                                             zorder=90)
+
+    def unplot(self):
+        self.line.remove()
+        self.line = None
+        self.level = None
 
     def set_level(self, event):
         """Set the level to a user input value."""
         evt_obj = event.GetEventObject()
 
-        # remove current threshold line
-        if self.lines:
-            self.lines.pop(0).remove()
-
         txtctrl_value = evt_obj.GetValue()
 
-        redraw_needed = False
         try:
             # will raise ValueError if not a number
             new_level = float(txtctrl_value)
             if not self.level or new_level != self.level:
                 self.level = new_level
-                redraw_needed = True
+                self.plot()
         except ValueError:
             if txtctrl_value == "" and self.level is not None:
                 # Let the user remove the threshold line
-                redraw_needed = True
-                self.level = None
-
-        if redraw_needed:
-            # plot the new threshold and add it to our blitted background
-            self.lines = self.frame.subplot.plot(
-                [self.frame.tb.cfg.min_freq-1e7, self.frame.tb.cfg.max_freq+1e7], # xs
-                [self.level] * 2, # ys
-                color='red',
-                zorder = 90 # draw it above the grid lines
-            )
-            self.frame.canvas.draw()
-            self.frame._update_background()
+                self.unplot()
 
         evt_obj.SetValue(str(self.level) if self.level else "")
 
