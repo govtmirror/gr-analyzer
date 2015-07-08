@@ -78,16 +78,6 @@ class top_block(gr.top_block):
             dtype=np.float
         )
 
-        self.lte_rates = np.array([
-            # rate (Hz) | Ch BW (MHz) | blocks | occupied | DFT size | samps/slot
-            1.92e6,    #|     1.4     |  6     |   72     |  128     |   960
-            3.83e6,    #|     3       |  15    |   180    |  256     |   1920
-            7.68e6,    #|     5       |  25    |   300    |  512     |   3840
-            15.36e6,   #|     10      |  50    |   600    |  1024    |   7680
-            23.04e6,   #|     15      |  75    |   900    |  1536    |   11520
-            30.72e6    #|     20      |  100   |   1200   |  2048    |   15360
-        ], dtype=np.float)
-
         # Default to 0 gain, full attenuation
         if cfg.gain is None:
             g = self.usrp.get_gain_range()
@@ -232,7 +222,6 @@ class top_block(gr.top_block):
         # Create the flowgraph:
         #
         # USRP   - hardware source output stream of 32bit complex floats
-        # resamp - rational resampler for LTE sample rates
         # ctrl   - copy N samples then call retune callback and loop
         # fft    - compute forward FFT, complex in complex out
         # mag^2  - convert vectors from complex to real by taking mag squared
@@ -242,18 +231,16 @@ class top_block(gr.top_block):
         # copy   - copy if gui thread is idle, else drop
         # plot   - plot data
         #
-        # USRP > (resamp) > ctrl > fft > mag^2 > stats > W2dBm > stitch > plot
+        # USRP > ctrl > fft > mag^2 > stats > W2dBm > stitch > copy > plot
 
-        if self.resampler:
-            self.connect(self.usrp, self.resampler, self.ctrl)
-        else:
-            self.connect(self.usrp, self.ctrl)
+        self.connect(self.usrp, self.ctrl)
         self.connect(self.ctrl, stream_to_fft_vec, self.fft)
         self.connect(self.fft, c2mag_sq, stats, W2dBm, fft_vec_to_stream)
         self.connect(fft_vec_to_stream, stream_to_stitch_vec, stitch)
         self.connect(stitch, self.copy_if_gui_idle, self.plot)
 
-        self.msg_connect(self.plot, "gui_busy_notifier", self.copy_if_gui_idle, "en")
+        self.msg_connect(self.plot, "gui_busy_notifier",
+                         self.copy_if_gui_idle, "en")
 
         if cfg.continuous_run:
             self.set_continuous_run()
@@ -264,24 +251,9 @@ class top_block(gr.top_block):
 
     def set_sample_rate(self, rate):
         """Set the USRP sample rate"""
-        hwrate = rate
+        self.usrp.set_samp_rate(rate)
 
-        if rate in self.lte_rates:
-            # Select closest USRP sample rate higher than LTE rate
-            hwrate = self.sample_rates[
-                np.abs(self.sample_rates - rate).argmin() + 1
-            ]
-            phase_shift = 0.0
-            resamp_ratio = hwrate / rate
-            self.resampler = fractional_resampler_cc(phase_shift, resamp_ratio)
-        else:
-            self.resampler = None
-
-        self.usrp.set_samp_rate(hwrate)
-        if self.resampler:
-            self.sample_rate = rate
-        else:
-            self.sample_rate = self.usrp.get_samp_rate()
+        self.sample_rate = self.usrp.get_samp_rate()
 
         # Pass the actual samp rate back to cfgs so they have it before
         # calling cfg.update()
@@ -293,8 +265,7 @@ class top_block(gr.top_block):
             self.pending_cfg.update()
             self.reconfigure(redraw_plot=True)
 
-        resample = " using fractional resampler" if self.resampler else ""
-        msg = "sample rate is {} S/s {}".format(int(self.sample_rate), resample)
+        msg = "sample rate is {} S/s".format(self.sample_rate)
         self.logger.debug(msg)
 
     def set_gain(self, gain):
