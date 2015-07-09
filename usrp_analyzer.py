@@ -310,11 +310,6 @@ class top_block(gr.top_block):
         max_atten = self.usrp.get_gain_range('PGA0').stop()
         self.usrp.set_gain(max_atten - atten, 'PGA0')
 
-#   @staticmethod
-#   def _chunks(l, n):
-#       """Yield successive n-sized chunks from l"""
-#       for i in xrange(0, len(l), n):
-#           yield l[i:i+n]
 
 def main(tb):
     """Run the main loop of the program"""

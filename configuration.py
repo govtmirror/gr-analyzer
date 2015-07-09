@@ -19,9 +19,7 @@
 from __future__ import division
 
 import math
-import itertools
 import logging
-import tempfile
 import numpy as np
 
 from gnuradio.filter import window
@@ -53,7 +51,7 @@ class configuration(object):
         self.__dict__.update(args.__dict__)
         self.overlap = self.overlap / 100.0 # percent to decimal
         self.requested_span = self.span
-        self.cpu_format = "fc32"            # hard coded for now
+        self.cpu_format = 'fc32'            # hard coded for now
 
         # configuration variables set by update():
         self.span = None               # width in Hz of total area to sample
@@ -73,30 +71,30 @@ class configuration(object):
         # commented-out windows require extra parameters that we're not set up
         # to handle at this time
         self.windows = {
-            "Bartlett":         window.bartlett,
-            "Blackman":         window.blackman,
-            "Blackman2":        window.blackman2,
-            "Blackman3":        window.blackman3,
-            "Blackman4":        window.blackman4,
-            "Blackman-Harris":  window.blackman_harris,
-            "Blackman-Nuttall": window.blackman_nuttal,
-            #"Cosine":           window.coswindow,
-            #"Exponential":      window.exponential,
-            "Flattop":          window.flattop,
-            "Hamming":          window.hamming,
-            "Hann":             window.hann,
-            "Hanning":          window.hanning,
-            #"Kaiser":           window.kaiser,
-            "Nuttall":          window.nuttal,
-            "Nuttall CFD":      window.nuttal_cfd,
-            "Parzen":           window.parzen,
-            "Rectangular":      window.rectangular,
-            "Riemann":          window.riemann,
-            "Welch":            window.welch
+            'Bartlett':         window.bartlett,
+            'Blackman':         window.blackman,
+            'Blackman2':        window.blackman2,
+            'Blackman3':        window.blackman3,
+            'Blackman4':        window.blackman4,
+            'Blackman-Harris':  window.blackman_harris,
+            'Blackman-Nuttall': window.blackman_nuttal,
+            #'Cosine':           window.coswindow,
+            #'Exponential':      window.exponential,
+            'Flattop':          window.flattop,
+            'Hamming':          window.hamming,
+            'Hann':             window.hann,
+            'Hanning':          window.hanning,
+            #'Kaiser':           window.kaiser,
+            'Nuttall':          window.nuttal,
+            'Nuttall CFD':      window.nuttal_cfd,
+            'Parzen':           window.parzen,
+            'Rectangular':      window.rectangular,
+            'Riemann':          window.riemann,
+            'Welch':            window.welch
         }
         self.window = None # Name of window, set by set_window
         self.window_coefficients = None # Set by set_window
-        self.set_window("Blackman-Harris")
+        self.set_window('Blackman-Harris')
 
     def set_wire_format(self, fmt):
         """Set the ethernet wire format between the USRP and host."""
@@ -139,9 +137,9 @@ class configuration(object):
 
         This allows us to discard bins on both ends of the spectrum.
         """
-        self.freq_step = self.adjust_rate(
-            self.sample_rate, self.RBW, self.overlap
-        )
+        self.freq_step = self.adjust_rate(self.sample_rate,
+                                          self.RBW,
+                                          self.overlap)
 
     def update_span(self):
         """If no requested span, set max span using only one center frequency"""
@@ -163,31 +161,22 @@ class configuration(object):
           self.n_segments       - length of self.center_freqs
         """
         # calculate min and max center frequencies
-        min_center_freq = self.min_freq + (self.freq_step / 2)
+        min_fc = self.min_freq + (self.freq_step / 2)
         if self.span <= self.freq_step:
-            self.center_freqs = np.array([min_center_freq])
+            self.center_freqs = np.array([min_fc])
         else:
             initial_n_segments = math.floor(self.span / self.freq_step)
-            max_center_freq = (
-                min_center_freq + (initial_n_segments * self.freq_step)
-            )
-            self.center_freqs = np.arange(
-                min_center_freq,
-                max_center_freq + 1,
-                self.freq_step
-            )
+            max_fc = min_fc + (initial_n_segments * self.freq_step)
+            self.center_freqs = np.arange(min_fc, max_fc + 1, self.freq_step)
 
         self.n_segments = len(self.center_freqs)
 
     def update_bin_freq_cache(self):
         """Cache frequencies at the center of each FFT bin"""
         # cache all fft bin frequencies
-        max_center_freq = self.center_freqs[-1]
-        self.bin_freqs = np.arange(
-            self.min_freq,
-            max_center_freq + (self.freq_step / 2), # actual max bin freq
-            self.RBW
-        )
+        max_fc = self.center_freqs[-1]
+        max_bin_freq = max_fc + (self.freq_step / 2)
+        self.bin_freqs = np.arange(self.min_freq, max_bin_freq, self.RBW)
 
     def update_bin_indices(self):
         """Update common indices used in cropping and overlaying DFTs"""
@@ -201,12 +190,17 @@ class configuration(object):
         """Reduce rate by a user-selected percentage and round it.
 
         The adjusted sample size is used to calculate a smaller frequency
-        step.  This allows us to overlap a percentage of bins which are most
-        affected by the windowing function.
+        step. This allows us to overlap a percentage of bins which are most
+        affected by filter rolloff.
 
         The adjusted sample size is then rounded so that a whole number of bins
         of size RBW go into it.
-
         """
         ratio_valid_bins = 1.0 - overlap
         return int(round((samp_rate * ratio_valid_bins) / rbw) * rbw)
+
+    def export_to_matlab(self):
+        """Export current configuration settings to .settings.mat"""
+        e = """TODO: Export config and raw bin data, then use octave script to
+               translate it into matlab format"""
+        raise NotImplementedError(e)
