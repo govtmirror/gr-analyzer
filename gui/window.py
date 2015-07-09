@@ -33,7 +33,8 @@ class windowfn_dropdown(wx.ComboBox):
                              style=wx.CB_READONLY)
 
         # Size the dropdown based on longest string
-        width, height = self.GetSize(dc = wx.ClientDC(self)
+        _, height = self.GetSize()
+        dc = wx.ClientDC(self)
         tsize = max(dc.GetTextExtent(s)[0] for s in window_strs)
         self.SetMinSize((tsize+50, height))
 

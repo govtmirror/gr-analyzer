@@ -30,7 +30,8 @@ class tune_delay_txtctrl(wx.TextCtrl):
                              style=wx.TE_PROCESS_ENTER)
 
         self.frame = frame
-        self.Bind(self.Bind(wx.EVT_TEXT_ENTER, self.update)
+        self.Bind(wx.EVT_KILL_FOCUS, self.update)
+        self.Bind(wx.EVT_TEXT_ENTER, self.update)
         self.set_value()
 
     def update(self, event):
