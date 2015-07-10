@@ -437,8 +437,8 @@ class wxpygui_frame(wx.Frame):
             self.logger.error(msg)
             return
         else:
-            if not self.tb.iq_vsink.data():
-                self.logger.warn("No time more data to export")
+            if not self.tb.timedata_sink.data():
+                self.logger.warn("No more time data to export")
                 return
 
             # creates path string 'data/time_data_01_TIMESTAMP.dat'
@@ -449,6 +449,7 @@ class wxpygui_frame(wx.Frame):
                                   '_',
                                   str(int(time.time())),
                                   '.dat'))
+
             wildcard = "Data and Settings files (*.dat; *.mat)|*.dat;*.mat"
             style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
             filepath_dialog = wx.FileDialog(self,
@@ -461,13 +462,10 @@ class wxpygui_frame(wx.Frame):
             if filepath_dialog.ShowModal() == wx.ID_CANCEL:
                 return
 
-            export_fn = self.tb.save_time_data_to_file
-            export_args =(filepath_dialog.GetPath(),)
-            export_thread = threading.Thread(target=export_fn, args=export_args)
-
             self.time_data_export_counter += 1
             filepath_dialog.Destroy()
-            export_thread.start()
+
+            self.tb.save_time_data_to_file(filepath_dialog.GetPath())
 
     def export_fft_data(self, event):
         if self.tb.single_run.is_set() or self.tb.continuous_run.is_set():
@@ -476,8 +474,8 @@ class wxpygui_frame(wx.Frame):
             self.logger.error(msg)
             return
         else:
-            if not self.tb.fft_vsink.data():
-                self.logger.warn("No FFT more data to export")
+            if not self.tb.freqdata_sink.data():
+                self.logger.warn("No more FFT data to export")
                 return False
 
             # creates path string 'data/fft_data_01_TIMESTAMP.dat'
@@ -487,8 +485,8 @@ class wxpygui_frame(wx.Frame):
                                   str(self.fft_data_export_counter).zfill(2),
                                   '_',
                                   str(int(time.time())),
-                                  '.dat')
-            )
+                                  '.dat'))
+
             wildcard = "Data and Settings files (*.dat; *.mat)|*.dat;*.mat"
             style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
             filepath_dialog = wx.FileDialog(self,
@@ -501,13 +499,10 @@ class wxpygui_frame(wx.Frame):
             if filepath_dialog.ShowModal() == wx.ID_CANCEL:
                 return
 
-            export_fn = self.tb.save_fft_data_to_file
-            export_args = (filepath_dialog.GetPath(),)
-            export_thread = threading.Thread(target=export_fn, args=export_args)
-
             self.fft_data_export_counter += 1
             filepath_dialog.Destroy()
-            export_thread.start()
+
+            self.tb.save_freq_data_to_file(filepath_dialog.GetPath())
 
     def close(self, event):
         """Handle a closed gui window."""

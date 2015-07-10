@@ -97,6 +97,10 @@ class top_block(gr.top_block):
 
     def set_single_run(self):
         self.clear_continuous_run()
+        if self.cfg.continuous_run:
+            self.rebuild_flowgraph = True
+            self.cfg.continuous_run = False
+            self.pending_cfg.continuous_run = False
         self.single_run.set()
 
     def clear_single_run(self):
@@ -104,7 +108,10 @@ class top_block(gr.top_block):
 
     def set_continuous_run(self):
         self.clear_single_run()
-        self.clear_exit_after_complete()
+        if not self.cfg.continuous_run:
+            self.clear_exit_after_complete()
+            self.rebuild_flowgraph = True
+            self.pending_cfg.continuous_run = True
         self.continuous_run.set()
 
     def clear_continuous_run(self):
@@ -130,13 +137,14 @@ class top_block(gr.top_block):
         """Configure or reconfigure the flowgraph"""
 
         self.lock()
+
+        # Apply any pending configuration changes
+        cfg = self.cfg = copy(self.pending_cfg)
+
         if not initial:
             self.disconnect_all()
             self.msg_disconnect(self.plot, "gui_busy_notifier",
                                 self.copy_if_gui_idle, "en")
-
-        # Apply any pending configuration changes
-        cfg = self.cfg = copy(self.pending_cfg)
 
         self.stream_args = uhd.stream_args(cpu_format=cfg.cpu_format,
                                            otw_format=cfg.wire_format,
@@ -163,6 +171,14 @@ class top_block(gr.top_block):
                                   cfg.tune_delay,
                                   cfg.fft_size * cfg.n_averages)
 
+        if cfg.continuous_run:
+            self.set_continuous_run()
+        else:
+            self.set_single_run()
+
+        timedata_vlen = 1
+        self.timedata_sink = blocks.vector_sink_c(timedata_vlen)
+
         stream_to_fft_vec = blocks.stream_to_vector(gr.sizeof_gr_complex,
                                                     cfg.fft_size)
 
@@ -172,6 +188,9 @@ class top_block(gr.top_block):
                                forward,
                                cfg.window_coefficients,
                                shift)
+
+        freqdata_vlen = cfg.fft_size
+        self.freqdata_sink = blocks.vector_sink_c(freqdata_vlen)
 
         c2mag_sq = blocks.complex_to_mag_squared(cfg.fft_size)
 
@@ -220,18 +239,23 @@ class top_block(gr.top_block):
         # USRP > ctrl > fft > mag^2 > stats > W2dBm > stitch > copy > plot
 
         self.connect(self.usrp, self.ctrl)
-        self.connect(self.ctrl, stream_to_fft_vec, self.fft)
-        self.connect(self.fft, c2mag_sq, stats, W2dBm, fft_vec_to_stream)
+        if self.single_run.is_set():
+            self.logger.debug("Connected timedata_sink")
+            self.connect((self.ctrl, 0), self.timedata_sink)
+        else:
+            self.logger.debug("Disconnected timedata_sink")
+        self.connect((self.ctrl, 0), stream_to_fft_vec, self.fft)
+        if self.single_run.is_set():
+            self.logger.debug("Connected freqdata_sink")
+            self.connect((self.fft, 0), self.freqdata_sink)
+        else:
+            self.logger.debug("Disconnected freqdata_sink")
+        self.connect((self.fft, 0), c2mag_sq, stats, W2dBm, fft_vec_to_stream)
         self.connect(fft_vec_to_stream, stream_to_stitch_vec, stitch)
         self.connect(stitch, self.copy_if_gui_idle, self.plot)
 
         self.msg_connect(self.plot, "gui_busy_notifier",
                          self.copy_if_gui_idle, "en")
-
-        if cfg.continuous_run:
-            self.set_continuous_run()
-        else:
-            self.set_exit_after_complete()
 
         self.unlock()
 
@@ -310,6 +334,12 @@ class top_block(gr.top_block):
         max_atten = self.usrp.get_gain_range('PGA0').stop()
         self.usrp.set_gain(max_atten - atten, 'PGA0')
 
+    def save_time_data_to_file(self):
+        print("NOOP")
+
+    def save_freq_data_to_file(self):
+        print("NOOP")
+
 
 def main(tb):
     """Run the main loop of the program"""
@@ -335,7 +365,11 @@ def main(tb):
             # check run mode again in 1/4 second
             time.sleep(.25)
 
+        tb.timedata_sink.reset()
+        tb.freqdata_sink.reset()
+
         if tb.rebuild_flowgraph:
+            print("rebuild flowgraph")
             tb.configure()
             tb.rebuild_flowgraph = False
 

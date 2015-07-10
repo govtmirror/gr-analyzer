@@ -20,24 +20,18 @@
 import wx
 
 
-class export_time_data_btn(wx.ToggleButton):
+class export_time_data_btn(wx.Button):
     """A toggle button to export I/Q data to a file."""
     def __init__(self, frame):
-        wx.ToggleButton.__init__(self,
-                                 frame,
-                                 wx.ID_ANY,
-                                 label="Time data")
+        wx.Button.__init__(self, frame, wx.ID_ANY, label="Time data")
 
         self.Bind(wx.EVT_BUTTON, frame.export_time_data)
 
 
-class export_fft_data_btn(wx.ToggleButton):
+class export_fft_data_btn(wx.Button):
     """A toggle button to export FFT data to a file."""
     def __init__(self, frame):
-        wx.ToggleButton.__init__(self,
-                                 frame,
-                                 wx.ID_ANY,
-                                 label="FFT data")
+        wx.Button.__init__(self, frame, wx.ID_ANY, label="FFT data")
 
         self.Bind(wx.EVT_BUTTON, frame.export_fft_data)
 
