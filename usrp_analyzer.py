@@ -67,9 +67,6 @@ class top_block(gr.top_block):
                                     stream_args=self.stream_args)
         self.usrp.set_auto_dc_offset(False)
 
-        rates = self.usrp.get_samp_rates().iterator()
-        self.sample_rates = np.array([r.start() for r in rates], dtype=np.float)
-
         # Default to 0 gain, full attenuation
         if cfg.gain is None:
             g = self.usrp.get_gain_range()
@@ -161,7 +158,6 @@ class top_block(gr.top_block):
         if cfg.antenna:
             self.usrp.set_antenna(cfg.antenna, 0)
 
-        self.resampler = None
         self.set_sample_rate(cfg.sample_rate)
 
         self.ctrl = controller_cc(self.usrp,
@@ -262,8 +258,14 @@ class top_block(gr.top_block):
     def set_sample_rate(self, rate):
         """Set the USRP sample rate"""
         self.usrp.set_samp_rate(rate)
-
         self.sample_rate = self.usrp.get_samp_rate()
+
+        clock_rate = self.sample_rate
+        if self.sample_rate < 10e6:
+            clock_rate *= 4
+
+        # If radio doesn't have adjustable master clock, this should be no-op.
+        self.usrp.set_clock_rate(clock_rate)
 
         # Pass the actual samp rate back to cfgs so they have it before
         # calling cfg.update()
