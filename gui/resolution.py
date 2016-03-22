@@ -35,7 +35,7 @@ class sample_rate_txtctrl(wx.TextCtrl):
         self.rbw_txt = rbw_txt
         self.Bind(wx.EVT_KILL_FOCUS, self.update)
         self.Bind(wx.EVT_TEXT_ENTER, self.update)
-        self.format_str = "{:.1f}"
+        self.format_str = "{:.2f}"
         self.set_value()
 
     def update(self, event):
@@ -74,7 +74,7 @@ class rbw_statictxt(wx.StaticText):
     def __init__(self, frame):
         wx.StaticText.__init__(self, frame, id=wx.ID_ANY, label="")
         self.frame = frame
-        self.format_str = "{:.1f} kHz"
+        self.format_str = "{:.2f} kHz"
         self.update()
 
     def update(self):

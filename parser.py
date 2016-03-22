@@ -77,12 +77,12 @@ def init_parser():
     usage += "Examples:\n"
     usage += "  %(prog)s 700M --continuous\n"
     usage += "  %(prog)s 700M --span 100M\n"
-    usage += "  %(prog)s 700M --wire-format=sc8 --args='peak=0.1' --samp-rate 30.72M\n\n"
+    usage += "  %(prog)s 700M --wire-format=sc8 --args='peak=0.1' --sample-rate 30.72M\n\n"
 
     parser = argparse.ArgumentParser(usage=usage)
     parser.add_argument("center_freq", type=eng_float)
     parser.add_argument("-S", "--span", type=eng_float, default=None,
-                        help="width to scan around center_freq [default=samp-rate]")
+                        help="width to scan around center_freq [default=sample-rate]")
     parser.add_argument("-d", "--device-addr", type=str, default="",
                         help="UHD device address [default=%(default)s]")
     parser.add_argument("--wire-format", type=str, default="sc16",

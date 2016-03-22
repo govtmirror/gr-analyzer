@@ -280,7 +280,7 @@ class wxpygui_frame(wx.Frame):
     @staticmethod
     def format_mhz(x, pos):
         """Format x ticks (in Hz) to MHz with 0 decimal places."""
-        return "{:.0f}".format(x / float(1e6))
+        return "{:.1f}".format(x / float(1e6))
 
     ####################
     # Plotting functions

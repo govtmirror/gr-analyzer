@@ -158,6 +158,8 @@ class top_block(gr.top_block):
         if cfg.antenna:
             self.usrp.set_antenna(cfg.antenna, 0)
 
+        self.clock_rate = int(self.usrp.get_clock_rate())
+        self.sample_rate = int(self.usrp.get_samp_rate())
         self.set_sample_rate(cfg.sample_rate)
 
         self.ctrl = controller_cc(self.usrp,
@@ -255,17 +257,32 @@ class top_block(gr.top_block):
 
         self.unlock()
 
-    def set_sample_rate(self, rate):
-        """Set the USRP sample rate"""
-        self.usrp.set_samp_rate(rate)
-        self.sample_rate = self.usrp.get_samp_rate()
-
-        clock_rate = self.sample_rate
-        if self.sample_rate < 10e6:
-            clock_rate *= 4
+    def set_clock_rate(self, rate):
+        """Set the USRP master clock rate"""
+        clock_rate = rate if rate >= 10e6 else 4*rate
 
         # If radio doesn't have adjustable master clock, this should be no-op.
         self.usrp.set_clock_rate(clock_rate)
+        self.clock_rate = int(self.usrp.get_clock_rate())
+
+        msg = "clock rate is {} S/s".format(self.clock_rate)
+        self.logger.debug(msg)
+
+        return self.clock_rate
+
+    def get_clock_rate(self):
+        """Get the USRP master clock rate"""
+        return self.clock_rate
+
+    def set_sample_rate(self, rate):
+        """Set the USRP sample rate"""
+
+        # Request new clock rate if not already a multiple of new sample rate
+        if self.clock_rate % int(rate):
+            self.set_clock_rate(rate)
+
+        self.usrp.set_samp_rate(rate)
+        self.sample_rate = int(self.usrp.get_samp_rate())
 
         # Pass the actual samp rate back to cfgs so they have it before
         # calling cfg.update()
