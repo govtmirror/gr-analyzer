@@ -282,62 +282,14 @@ class top_block(gr.top_block):
         """Let UHD decide how to distribute gain."""
         self.usrp.set_gain(gain)
 
-    def set_ADC_gain(self, gain):
-        """Via uhd_usrp_probe:
-        Name: ads62p44 (TI Dual 14-bit 105MSPS ADC)
-        Gain range digital: 0.0 to 6.0 step 0.5 dB
-        Gain range fine: 0.0 to 0.5 step 0.1 dB
-        """
-        max_digi = self.usrp.get_gain_range('ADC-digital').stop()
-        max_fine = self.usrp.get_gain_range('ADC-fine').stop()
-        # crop to 0.0 - 6.0
-        cropped = Decimal(str(max(0.0, min(max_digi, float(gain)))))
-        mod = cropped % Decimal(max_fine)  # ex: 5.7 -> 0.2
-        fine = round(mod, 1)               # get fine in terms steps of 0.1
-        digi = float(cropped - mod)        # ex: 5.7 - 0.2 -> 5.5
-        self.usrp.set_gain(digi, 'ADC-digital')
-        self.usrp.set_gain(fine, 'ADC-fine')
-
-        return (digi, fine) # return vals for testing
-
     def get_gain(self):
-        """Return total ADC gain as float."""
-        return self.usrp.get_gain('ADC-digital') + self.usrp.get_gain('ADC-fine')
+        """Return total gain as float."""
+        return self.usrp.get_gain()
 
-    def get_gain_range(self, name=None):
-        """Return a UHD meta range object for whole range or specific gain.
-
-        Available gains: ADC-digital ADC-fine PGA0
-        """
-        return self.usrp.get_gain_range(name if name else "")
-
-    def get_ADC_digital_gain(self):
-        return self.usrp.get_gain('ADC-digital')
-
-    def get_ADC_fine_gain(self):
-        return self.usrp.get_gain('ADC-fine')
-
-    def get_attenuation(self):
-        max_atten = self.usrp.get_gain_range('PGA0').stop()
-        return max_atten - self.usrp.get_gain('PGA0')
-
-    def set_attenuation(self, atten):
-        """Adjust level on Hittite HMC624LP4E Digital Attenuator.
-
-        UHD driver increases gain by removing attenuation, so to:
-        - add 10dB attenuation, we need to remove 10dB gain from PGA0
-        - remove 10dB attenuation, we need to add 10dB gain to PGA0
-
-        Specs: Range 0 - 31.5 dB, 0.5 dB step
-        NOTE: uhd driver handles range input for the attenuator
-        """
-        max_atten = self.usrp.get_gain_range('PGA0').stop()
-        self.usrp.set_gain(max_atten - atten, 'PGA0')
-
-    def save_time_data_to_file(self):
+    def save_time_data_to_file(self, data):
         print("NOOP")
 
-    def save_freq_data_to_file(self):
+    def save_freq_data_to_file(self, data):
         print("NOOP")
 
 

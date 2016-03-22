@@ -20,40 +20,8 @@
 import wx
 
 
-class atten_txtctrl(wx.TextCtrl):
-    """Input TextCtrl for setting attenuation."""
-    def __init__(self, frame):
-        wx.TextCtrl.__init__(self,
-                             frame,
-                             id=wx.ID_ANY,
-                             size=(60, -1),
-                             style=wx.TE_PROCESS_ENTER)
-
-        self.frame = frame
-        self.Bind(wx.EVT_KILL_FOCUS, self.update)
-        self.Bind(wx.EVT_TEXT_ENTER, self.update)
-        self.set_value()
-
-    def update(self, event):
-        val = self.GetValue()
-        try:
-            float_val = float(val)
-        except ValueError:
-            self.set_value()
-            return
-
-        if float_val != self.frame.tb.get_attenuation():
-            self.frame.tb.set_attenuation(float_val)
-
-        self.set_value()
-
-    def set_value(self):
-        actual_val = self.frame.tb.get_attenuation()
-        self.SetValue(str(actual_val))
-
-
-class ADC_digi_txtctrl(wx.TextCtrl):
-    """Input TxtCtrl for setting ADC digital gain."""
+class gain_txtctrl(wx.TextCtrl):
+    """Input TxtCtrl for setting gain."""
     def __init__(self, frame):
         wx.TextCtrl.__init__(self,
                              frame,
@@ -75,7 +43,7 @@ class ADC_digi_txtctrl(wx.TextCtrl):
             return
 
         if float_val != self.frame.tb.get_gain():
-            self.frame.tb.set_ADC_gain(float_val)
+            self.frame.tb.set_gain(float_val)
 
         self.set_value()
 
@@ -88,21 +56,7 @@ class ctrls(object):
     def __init__(self, frame):
         """Initialize gui controls for gain."""
 
-        ctrl_box = wx.StaticBox(frame, wx.ID_ANY, "Gain (dB)")
-        self.layout = wx.StaticBoxSizer(ctrl_box, wx.VERTICAL)
-        grid = wx.FlexGridSizer(rows=2, cols=2)
-        # Attenuation
-        atten_txt = wx.StaticText(frame, wx.ID_ANY, "Atten: ")
-        atten_hbox = wx.BoxSizer(wx.HORIZONTAL)
-        self.atten_txtctrl = atten_txtctrl(frame)
-        atten_hbox.Add(self.atten_txtctrl,
-                       flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-
-        # ADC digi gain
-        ADC_txt = wx.StaticText(frame, wx.ID_ANY, "ADC digi: ")
-        grid.Add(atten_txt, flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(atten_hbox, flag=wx.BOTTOM, border=5)
-        grid.Add(ADC_txt, flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-        self.ADC_digi_txtctrl = ADC_digi_txtctrl(frame)
-        grid.Add(self.ADC_digi_txtctrl, flag=wx.ALIGN_RIGHT)
-        self.layout.Add(grid, flag=wx.ALL, border=5)
+        box = wx.StaticBox(frame, wx.ID_ANY, "Gain (dB)")
+        self.gain_txtctrl = gain_txtctrl(frame)
+        self.layout = wx.StaticBoxSizer(box, wx.HORIZONTAL)
+        self.layout.Add(self.gain_txtctrl, flag=wx.ALL, border=5)
