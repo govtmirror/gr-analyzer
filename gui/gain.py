@@ -42,13 +42,13 @@ class gain_txtctrl(wx.TextCtrl):
             self.set_value()
             return
 
-        if float_val != self.frame.tb.get_gain():
-            self.frame.tb.set_gain(float_val)
+        if float_val != self.frame.tb.usrp.get_gain():
+            self.frame.tb.usrp.set_gain(float_val)
 
         self.set_value()
 
     def set_value(self):
-        actual_val = self.frame.tb.get_gain()
+        actual_val = self.frame.tb.usrp.get_gain()
         self.SetValue(str(actual_val))
 
 

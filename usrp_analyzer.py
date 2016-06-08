@@ -16,7 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
+import os
+import sys
 import math
 import time
 import threading
@@ -26,6 +29,7 @@ from copy import copy
 from decimal import Decimal
 
 from gnuradio import gr
+from gnuradio import filter as gr_filter
 from gnuradio import blocks
 from gnuradio import fft
 from gnuradio import uhd
@@ -37,7 +41,9 @@ from usrpanalyzer import (controller_cc,
 from blocks.plotter_f import plotter_f
 from configuration import configuration
 from parser import init_parser
+import consts
 import gui
+from usrp import usrp
 
 
 class top_block(gr.top_block):
@@ -59,31 +65,16 @@ class top_block(gr.top_block):
             if r != gr.RT_OK:
                 self.logger.warning("failed to enable realtime scheduling")
 
-        self.stream_args = uhd.stream_args(cpu_format=cfg.cpu_format,
-                                           otw_format=cfg.wire_format,
-                                           args=cfg.stream_args)
-
-        self.usrp = uhd.usrp_source(device_addr=cfg.device_addr,
-                                    stream_args=self.stream_args)
-        self.usrp.set_auto_dc_offset(False)
-
-        # Default to 0 gain, full attenuation
-        if cfg.gain is None:
-            g = self.usrp.get_gain_range()
-            cfg.gain = g.start()
-
-        self.set_gain(cfg.gain)
-        self.gain = cfg.gain
-
-        # Holds the most recent tune_result object returned by uhd.tune_request
-        self.tune_result = None
+        try:
+            self.usrp = usrp(cfg)
+        except RuntimeError, err:
+            print("Error initializing USRP." + str(err), file=sys.stderr)
+            sys.exit(0)
 
         # The main loop blocks at the end of the loop until either continuous
         # or single run mode is set.
         self.continuous_run = threading.Event()
         self.single_run = threading.Event()
-
-        self.current_freq = None
 
         self.reset_stream_args = False
 
@@ -135,6 +126,9 @@ class top_block(gr.top_block):
 
         self.lock()
 
+        if self.usrp.apply_cfg(self.pending_cfg):
+            self.pending_cfg = copy(self.usrp.get_cfg())
+
         # Apply any pending configuration changes
         cfg = self.cfg = copy(self.pending_cfg)
 
@@ -143,26 +137,7 @@ class top_block(gr.top_block):
             self.msg_disconnect(self.plot, "gui_busy_notifier",
                                 self.copy_if_gui_idle, "en")
 
-        self.stream_args = uhd.stream_args(cpu_format=cfg.cpu_format,
-                                           otw_format=cfg.wire_format,
-                                           args=cfg.stream_args)
-
-        if self.reset_stream_args:
-            self.usrp.set_stream_args(self.stream_args)
-            self.reset_stream_args = False
-
-        if cfg.subdev_spec:
-            self.usrp.set_subdev_spec(cfg.subdev_spec, 0)
-
-        # Set the antenna
-        if cfg.antenna:
-            self.usrp.set_antenna(cfg.antenna, 0)
-
-        self.clock_rate = int(self.usrp.get_clock_rate())
-        self.sample_rate = int(self.usrp.get_samp_rate())
-        self.set_sample_rate(cfg.sample_rate)
-
-        self.ctrl = controller_cc(self.usrp,
+        self.ctrl = controller_cc(self.usrp.uhd,
                                   cfg.center_freqs,
                                   cfg.lo_offset,
                                   cfg.skip_initial,
@@ -236,7 +211,7 @@ class top_block(gr.top_block):
         #
         # USRP > ctrl > fft > mag^2 > stats > W2dBm > stitch > copy > plot
 
-        self.connect(self.usrp, self.ctrl)
+        self.connect(self.usrp.uhd, self.ctrl)
         if self.single_run.is_set():
             self.logger.debug("Connected timedata_sink")
             self.connect((self.ctrl, 0), self.timedata_sink)
@@ -257,53 +232,18 @@ class top_block(gr.top_block):
 
         self.unlock()
 
-    def set_clock_rate(self, rate):
-        """Set the USRP master clock rate"""
-        clock_rate = rate if rate >= 10e6 else 4*rate
-
-        # If radio doesn't have adjustable master clock, this should be no-op.
-        self.usrp.set_clock_rate(clock_rate)
-        self.clock_rate = int(self.usrp.get_clock_rate())
-
-        msg = "clock rate is {} S/s".format(self.clock_rate)
-        self.logger.debug(msg)
-
-        return self.clock_rate
-
-    def get_clock_rate(self):
-        """Get the USRP master clock rate"""
-        return self.clock_rate
-
     def set_sample_rate(self, rate):
-        """Set the USRP sample rate"""
-
-        # Request new clock rate if not already a multiple of new sample rate
-        if self.clock_rate % int(rate):
-            self.set_clock_rate(rate)
-
-        self.usrp.set_samp_rate(rate)
-        self.sample_rate = int(self.usrp.get_samp_rate())
+        new_rate = self.usrp.set_sample_rate(rate)
 
         # Pass the actual samp rate back to cfgs so they have it before
         # calling cfg.update()
         requested_rate = self.cfg.sample_rate
-        self.pending_cfg.sample_rate = self.cfg.sample_rate = self.sample_rate
+        self.pending_cfg.sample_rate = self.cfg.sample_rate = new_rate
 
         # If the rate was adjusted, recalculate freqs and reconfigure flowgraph
         if requested_rate != self.sample_rate:
             self.pending_cfg.update()
             self.reconfigure(redraw_plot=True)
-
-        msg = "sample rate is {} S/s".format(self.sample_rate)
-        self.logger.debug(msg)
-
-    def set_gain(self, gain):
-        """Let UHD decide how to distribute gain."""
-        self.usrp.set_gain(gain)
-
-    def get_gain(self):
-        """Return total gain as float."""
-        return self.usrp.get_gain()
 
     def save_time_data_to_file(self, data):
         print("NOOP")

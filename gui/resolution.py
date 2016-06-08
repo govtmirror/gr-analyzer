@@ -52,12 +52,8 @@ class sample_rate_txtctrl(wx.TextCtrl):
             # That makes USRP very unhappy
             float_val = 25e6
 
-        rates = self.frame.tb.sample_rates
-        nearest_idx = utils.find_nearest(rates, float_val)
-        rate = rates[nearest_idx]
-
-        if rate != self.frame.tb.pending_cfg.sample_rate:
-            self.frame.tb.pending_cfg.sample_rate = rate
+        if float_val != self.frame.tb.pending_cfg.sample_rate:
+            self.frame.tb.pending_cfg.sample_rate = float_val
             self.frame.tb.pending_cfg.update()
             self.frame.tb.reconfigure()
             self.rbw_txt.update()

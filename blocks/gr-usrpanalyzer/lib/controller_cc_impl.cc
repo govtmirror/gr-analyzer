@@ -88,10 +88,10 @@ namespace gr {
       d_retune = d_nsegments > 1;
       d_exit_after_complete = false;
 
-      d_tag_key = pmt::intern("rx_freq");
-
       set_tag_propagation_policy(TPP_DONT);
       d_unittest = unittest;
+
+      message_port_register_out(fc_msg_port);
     }
 
     void
@@ -166,7 +166,7 @@ namespace gr {
 
       d_tags.clear();
       // populate tags vector with any tag on chan 0 matching tag_key
-      this->get_tags_in_range(d_tags, 0, range_start, range_stop, d_tag_key);
+      this->get_tags_in_range(d_tags, 0, range_start, range_stop, fc_tag_key);
 
       // Find first tag matching target freq
       bool got_target_freq = false;
@@ -296,6 +296,8 @@ namespace gr {
       ::uhd::tune_request_t tune_req(d_current_freq, d_lo_offset);
       //tune_req.args = ::uhd::device_addr_t("mode_n=integer"); // use integer N tuning
       d_tune_result = usrp_ptr->set_center_freq(tune_req);
+
+      this->message_port_pub(fc_msg_port, pmt::from_double(d_current_freq));
     }
 
     void

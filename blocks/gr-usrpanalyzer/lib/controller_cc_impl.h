@@ -78,9 +78,12 @@ namespace gr {
       bool d_retune;              // convenience variable for "nsegments > 1"
       bool d_exit_after_complete; // if true, exit at end of span
 
-      bool d_unittest;              // if true, assume rx_freq's value is correct
+      bool d_unittest;            // if true, assume rx_freq's value is correct
 
       WorkState st;
+
+      const pmt::pmt_t fc_msg_port = pmt::intern("fc");
+      const pmt::pmt_t fc_tag_key = pmt::intern("rx_freq");
 
       void reset();               // helper function called at end of span
       void tune_usrp();
