@@ -72,24 +72,29 @@ def fft_size(value):
 def init_parser():
     """Initialize an OptionParser instance, populate it, and return it."""
 
-    usage =  "%(prog)s [options] center_freq"
+    usage = "%(prog)s [options] center_freq"
     usage += "\n\n"
     usage += "Examples:\n"
     usage += "  %(prog)s 700M --continuous\n"
     usage += "  %(prog)s 700M --span 100M\n"
-    usage += "  %(prog)s 700M --wire-format=sc8 --args='peak=0.1' --sample-rate 30.72M\n\n"
+    usage += "  %(prog)s 700M --wire-format=sc8 --args='peak=0.1'"
+    usage += " --sample-rate 30.72M\n\n"
 
     parser = argparse.ArgumentParser(usage=usage)
     parser.add_argument("center_freq", type=eng_float)
+    parser.add_argument("--scale", type=eng_float, default=1,
+                        help="voltage scale factor applied to IQ samples")
     parser.add_argument("-S", "--span", type=eng_float, default=None,
-                        help="width to scan around center_freq [default=sample-rate]")
+                        help="width to scan around center_freq" +
+                             " [default=sample-rate]")
     parser.add_argument("-d", "--device-addr", type=str, default="",
                         help="UHD device address [default=%(default)s]")
     parser.add_argument("--wire-format", type=str, default="sc16",
                         choices=consts.WIRE_FORMATS,
                         help="Set wire format from USRP [default=%(default)s]")
     parser.add_argument("--stream-args", type=str, default="peak=1.0",
-                        help="Set additional stream args [default=%(default)s]")
+                        help="Set additional stream args" +
+                             " [default=%(default)s]")
     parser.add_argument("--spec", type=str, default=None, dest="subdev_spec",
                         help="Subdevice of UHD device where appropriate")
     parser.add_argument("-A", "--antenna", type=str, default=None,
@@ -100,25 +105,31 @@ def init_parser():
                         help="set gain in dB")
     parser.add_argument("--skip-initial", type=int,
                         default=1000000, metavar="samples",
-                        help="samples to skip after initiating flowgraph [default=%(default)s]")
+                        help="samples to skip after initiating flowgraph" +
+                             " [default=%(default)s]")
     parser.add_argument("--tune-delay", type=int,
                         default=100000, metavar="samples",
-                        help="samples to skip after each retune [default=%(default)s]")
+                        help="samples to skip after each retune" +
+                             " [default=%(default)s]")
     parser.add_argument("--averages", type=pos_int, dest="n_averages",
                         default=30, metavar="fft frames",
-                        help="number of DFTs to average at a given frequency [default=%(default)s]")
+                        help="number of DFTs to average at a given frequency" +
+                             " [default=%(default)s]")
     parser.add_argument("-l", "--lo-offset", type=eng_float,
                         default=0, metavar="Hz",
                         help="lo_offset in Hz [default=%(default)s]")
-    parser.add_argument('-o', "--overlap", type=percent, metavar='%', default=25,
-                        help="Overlap the outer n%% of the fft [default=%(default)s]")
+    parser.add_argument('-o', "--overlap", type=percent, metavar='%',
+                        default=25, help="Overlap the outer n%% of the fft" +
+                                         "[default=%(default)s]")
     parser.add_argument("-F", "--fft-size", type=fft_size, default=1024,
-                        help="specify number of FFT bins [default=%(default)s]")
+                        help="specify number of FFT bins" +
+                             "[default=%(default)s]")
     parser.add_argument("--debug", action="store_true", default=False,
                         help=argparse.SUPPRESS)
-    parser.add_argument("-c", "--continuous", action="store_true", default=False,
-                        dest="continuous_run",
-                        help="Start in continuous run mode [default=%(default)s]")
+    parser.add_argument("-c", "--continuous", action="store_true",
+                        default=False, dest="continuous_run",
+                        help="Start in continuous run mode" +
+                             "[default=%(default)s]")
     parser.add_argument("--realtime", action="store_true", default=False,
                         help="Attempt to enable realtime scheduling")
 

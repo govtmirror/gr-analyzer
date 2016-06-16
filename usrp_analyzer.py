@@ -24,15 +24,11 @@ import math
 import time
 import threading
 import logging
-import numpy as np
 from copy import copy
-from decimal import Decimal
 
 from gnuradio import gr
-from gnuradio import filter as gr_filter
 from gnuradio import blocks
 from gnuradio import fft
-from gnuradio import uhd
 
 from usrpanalyzer import (controller_cc,
                           bin_statistics_ff,
@@ -41,7 +37,6 @@ from usrpanalyzer import (controller_cc,
 from blocks.plotter_f import plotter_f
 from configuration import configuration
 from parser import init_parser
-import consts
 import gui
 from usrp import usrp
 
@@ -149,6 +144,8 @@ class top_block(gr.top_block):
         else:
             self.set_single_run()
 
+        self.scaleV = blocks.multiply_const_cc(cfg.scale)
+
         timedata_vlen = 1
         self.timedata_sink = blocks.vector_sink_c(timedata_vlen)
 
@@ -173,7 +170,7 @@ class top_block(gr.top_block):
 
         # Divide magnitude-square by a constant to obtain power
         # in Watts. Assumes unit of USRP source is volts.
-        impedance = 50.0 # ohms
+        impedance = 50.0  # ohms
         Vsq2W_dB = -10.0 * math.log10(cfg.fft_size * power * impedance)
         # Convert from Watts to dBm.
         W2dBm = blocks.nlog10_ff(10.0, cfg.fft_size, 30 + Vsq2W_dB)
@@ -185,7 +182,7 @@ class top_block(gr.top_block):
         fft_vec_to_stream = blocks.vector_to_stream(gr.sizeof_float,
                                                     cfg.fft_size)
         n_valid_bins = cfg.fft_size - (cfg.fft_size * (cfg.overlap / 2) * 2)
-        #FIXME: think about whether to cast to int vs round vs...
+        # FIXME: think about whether to cast to int vs round vs...
         stitch_vec_len = int(cfg.n_segments * cfg.fft_size)
         stream_to_stitch_vec = blocks.stream_to_vector(gr.sizeof_float,
                                                        stitch_vec_len)
@@ -201,6 +198,7 @@ class top_block(gr.top_block):
         #
         # USRP   - hardware source output stream of 32bit complex floats
         # ctrl   - copy N samples then call retune callback and loop
+        # scale  - scale voltage by scalar to get calibrated output
         # fft    - compute forward FFT, complex in complex out
         # mag^2  - convert vectors from complex to real by taking mag squared
         # stats  - linear average vectors if n_averages > 1
@@ -211,13 +209,13 @@ class top_block(gr.top_block):
         #
         # USRP > ctrl > fft > mag^2 > stats > W2dBm > stitch > copy > plot
 
-        self.connect(self.usrp.uhd, self.ctrl)
+        self.connect(self.usrp.uhd, self.ctrl, self.scale)
         if self.single_run.is_set():
             self.logger.debug("Connected timedata_sink")
-            self.connect((self.ctrl, 0), self.timedata_sink)
+            self.connect((self.scale, 0), self.timedata_sink)
         else:
             self.logger.debug("Disconnected timedata_sink")
-        self.connect((self.ctrl, 0), stream_to_fft_vec, self.fft)
+        self.connect((self.scale, 0), stream_to_fft_vec, self.fft)
         if self.single_run.is_set():
             self.logger.debug("Connected freqdata_sink")
             self.connect((self.fft, 0), self.freqdata_sink)
@@ -280,7 +278,7 @@ def main(tb):
         tb.freqdata_sink.reset()
 
         if tb.rebuild_flowgraph:
-            print("rebuild flowgraph")
+            logger.info("rebuild flowgraph")
             tb.configure()
             tb.rebuild_flowgraph = False
 
@@ -291,7 +289,6 @@ if __name__ == '__main__':
     cfg = configuration(args)
 
     if cfg.debug:
-        import os
         print("pid = {}".format(os.getpid()))
         raw_input("Press Enter to continue...")
 
