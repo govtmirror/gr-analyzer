@@ -6,7 +6,7 @@ the USRP. It is build on
 [GNURadio](http://gnuradio.org/redmine/projects/gnuradio/wiki) and
 [SciPy](http://www.scipy.org/).
 
-![gr-analyzer screenshot](extras/gr_analyzer_screenshot.png)
+![gr-analyzer screenshot](extras/gr_analyzer_screenshot.png =900x)
 
 Key Features
 ------------
@@ -77,4 +77,4 @@ Douglas Anderson | NTIA/Institute for Telecommunication Sciences | danderson@bld
 
 Legal
 -----
-Copyright NTIA/Institute for Telecommunication Sciences. Released under GPL 3 - see LICENSE.txt.
+Copyright NTIA/Institute for Telecommunication Sciences. Released under GPL 3 - see [LICENSE](LICENSE.txt).
