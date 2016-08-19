@@ -198,7 +198,7 @@ class top_block(gr.top_block):
         #
         # USRP   - hardware source output stream of 32bit complex floats
         # ctrl   - copy N samples then call retune callback and loop
-        # scale  - scale voltage by scalar to get calibrated output
+        # scaleV - scale voltage by scalar to get calibrated output
         # fft    - compute forward FFT, complex in complex out
         # mag^2  - convert vectors from complex to real by taking mag squared
         # stats  - linear average vectors if n_averages > 1
@@ -209,13 +209,13 @@ class top_block(gr.top_block):
         #
         # USRP > ctrl > fft > mag^2 > stats > W2dBm > stitch > copy > plot
 
-        self.connect(self.usrp.uhd, self.ctrl, self.scale)
+        self.connect(self.usrp.uhd, self.ctrl, self.scaleV)
         if self.single_run.is_set():
             self.logger.debug("Connected timedata_sink")
-            self.connect((self.scale, 0), self.timedata_sink)
+            self.connect((self.scaleV, 0), self.timedata_sink)
         else:
             self.logger.debug("Disconnected timedata_sink")
-        self.connect((self.scale, 0), stream_to_fft_vec, self.fft)
+        self.connect((self.scaleV, 0), stream_to_fft_vec, self.fft)
         if self.single_run.is_set():
             self.logger.debug("Connected freqdata_sink")
             self.connect((self.fft, 0), self.freqdata_sink)
