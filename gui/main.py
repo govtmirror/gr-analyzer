@@ -1,27 +1,7 @@
-#!/usr/bin/env python
-
-# USRPAnalyzer - spectrum sweep functionality for USRP and GNURadio
-# Copyright (C) Douglas Anderson
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
 import os
 import time
 import wx
 import logging
-import threading
 import numpy as np
 import matplotlib
 matplotlib.use('WXAgg')
@@ -38,7 +18,7 @@ class wxpygui_frame(wx.Frame):
     """The main gui frame."""
 
     def __init__(self, tb):
-        wx.Frame.__init__(self, parent=None, id=-1, title="USRPAnalyzer")
+        wx.Frame.__init__(self, parent=None, id=-1, title="gr-analyzer")
         self.tb = tb
 
         self.min_power = -120 # dBm
@@ -73,7 +53,7 @@ class wxpygui_frame(wx.Frame):
 
         self.set_layout()
 
-        self.logger = logging.getLogger('USRPAnalyzer.wxpygui_frame')
+        self.logger = logging.getLogger('gr-analyzer.wxpygui_frame')
 
         # gui event handlers
         self.Bind(wx.EVT_CLOSE, self.close)
@@ -271,7 +251,7 @@ class wxpygui_frame(wx.Frame):
         ax.set_xticks(xticks)
         ax.set_yticks(np.arange(self.min_power, self.max_power, 10))
         ax.grid(color='.90', linestyle='-', linewidth=1)
-        ax.set_title("Power Spectrum Density")
+        ax.set_title("Power Spectrum")
 
         self.subplot = ax
         self.canvas.draw()

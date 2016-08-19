@@ -1,12 +1,12 @@
-USRP Analyzer
-=============
+Gr-Analyzer
+===========
 
-USRP Analyzer provides a spectrum analyzer-like graphical interface to
+GR-Analyzer provides a spectrum analyzer-like graphical interface to
 the USRP. It is build on
 [GNURadio](http://gnuradio.org/redmine/projects/gnuradio/wiki) and
 [SciPy](http://www.scipy.org/).
 
-![USRP Analyzer screenshot](extras/usrp_analyzer_scrnshot.png)
+![gr-analyzer screenshot](extras/gr_analyzer_screenshot.png)
 
 Key Features
 ------------
@@ -15,34 +15,66 @@ Key Features
 * Marker with global peak search
 * Peak search in selected region (demo'd in screenshot)
 * Output to log if user-selected threshold is exceeded
-* Export raw and post-FFT I/Q data to Matlab file
-* Custom blocks to:
-  * linear average multiple passes
-  * drop N samples from the stream after frontend retune
-* Easily decouple GUI from processing code
+* Export raw and post-FFT I/Q data to file
 
 Quick Start
 -----------
-1. Install GNURadio and UHD (recommend using [PyBombs](https://github.com/pybombs/pybombs))
-2. Don't forget to `./pybombs env` and then `source setup_env.sh`
-3. Install Python dependencies: `python-wxgtk2.8, python-scipy` (List may be incomplete)
-4. Build and install custom blocks:
-```bash
-$ cd USRPAnalyzer/blocks/gr-usrpanalyzer
-$ mkdir build && cd build
-$ cmake -DCMAKE_INSTALL_PREFIX:PATH=~/YOUR_PYBOMBS_TARGET ../ && make all install
 ```
+# On Ubuntu 16.04 - modify as needed for other systems
+$ sudo apt install gnuradio-dev libuhd-dev
+$ pip install numpy matplotlib
+$ git clone https://github.com/NTIA/gr-analyzer
+$ cd gr-analyzer/gr-analyzer
+$ mkdir build; cd build
+$ sudo make install
+$ cd ..
+$ ./gr_analyzer.py --help
+linux; GNU C++ version 5.3.1 20151219; Boost_105800; UHD_003.009.002-0-unknown
 
-Navigate to the directory with usrp_analyzer.py and try `./usrp_analyzer.py --help` to see examples and options
+usage: gr_analyzer.py [options] center_freq
 
-Todo
-----
- - [ ] Add facilities for time sample measurements (Sensor UI Requirements 3.0)
- 
-Known Issues
------------
-* To use sample rates above 25MS/s, we must change the USRP wire format from sc16 to sc8. Currently the ability to do this is implemented as a command line option. The GUI is also programmed to allow the change to be made on-the-fly, however, that ability does not exist in the UHD driver at this time. Martin Braun at Ettus is currently looking into adding this ability to UHD.
+Examples:
+  gr_analyzer.py 700M --continuous
+  gr_analyzer.py 700M --span 100M
+  gr_analyzer.py 700M --wire-format=sc8 --args='peak=0.1' --sample-rate 30.72M
+
+positional arguments:
+  center_freq
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --scale SCALE         voltage scale factor applied to IQ samples
+  -S SPAN, --span SPAN  width to scan around center_freq [default=sample-rate]
+  -d DEVICE_ADDR, --device-addr DEVICE_ADDR
+                        UHD device address [default=]
+  --wire-format {sc8,sc16}
+                        Set wire format from USRP [default=sc16]
+  --stream-args STREAM_ARGS
+                        Set additional stream args [default=peak=1.0]
+  --spec SUBDEV_SPEC    Subdevice of UHD device where appropriate
+  -A ANTENNA, --antenna ANTENNA
+                        select Rx Antenna where appropriate
+  -s SAMPLE_RATE, --sample-rate SAMPLE_RATE
+                        set sample rate [default=10000000.0]
+  -g GAIN, --gain GAIN  set gain in dB
+  --skip-initial samples
+                        samples to skip after initiating flowgraph [default=1000000]
+  --tune-delay samples  samples to skip after each retune [default=100000]
+  --averages fft frames
+                        number of DFTs to average at a given frequency [default=30]
+  -l Hz, --lo-offset Hz
+                        lo_offset in Hz [default=0]
+  -o %, --overlap %     Overlap the outer n% of the fft[default=25]
+  -F FFT_SIZE, --fft-size FFT_SIZE
+                        specify number of FFT bins[default=1024]
+  -c, --continuous      Start in continuous run mode[default=False]
+  --realtime            Attempt to enable realtime scheduling
+```
 
 Support
 -------
 Douglas Anderson | NTIA/Institute for Telecommunication Sciences | danderson@bldrdoc.its.gov
+
+Legal
+-----
+Copyright NTIA/Institute for Telecommunication Sciences. Released under GPL 3 - see LICENSE.txt.
