@@ -6,7 +6,7 @@ the USRP. It is build on
 [GNURadio](http://gnuradio.org/redmine/projects/gnuradio/wiki) and
 [SciPy](http://www.scipy.org/).
 
-![gr-analyzer screenshot](extras/gr_analyzer_screenshot.png =900x)
+![gr-analyzer screenshot](extras/gr_analyzer_screenshot.png)
 
 Key Features
 ------------
