@@ -50,6 +50,15 @@ def fft_size(value):
         raise argparse.ArgumentTypeError(msg.format(value))
 
 
+def detector(value):
+    """Ensure user selectors supported detector type"""
+    try:
+        return consts.Detector[value]
+    except KeyError:
+        msg = "invalid detector: {0!r}, must be one of {1!r}"
+        raise argparse.ArgumentTypeError(msg.format(value, consts.DETECTORS))
+
+
 def init_parser():
     """Initialize an OptionParser instance, populate it, and return it."""
 
@@ -92,9 +101,13 @@ def init_parser():
                         default=100000, metavar="samples",
                         help="samples to skip after each retune" +
                              " [default=%(default)s]")
-    parser.add_argument("--averages", type=pos_int, dest="n_averages",
-                        default=30, metavar="fft frames",
-                        help="number of DFTs to average at a given frequency" +
+    parser.add_argument("--nframes", type=pos_int, default=30,
+                        metavar="fft frames",
+                        help="number of DFTs to detect at a given frequency" +
+                             " [default=%(default)s]")
+    parser.add_argument("--detector", type=detector, metavar="AVG or PEAK",
+                        default=consts.Detector.AVG,
+                        help="peak hold or average multiple DFTs" +
                              " [default=%(default)s]")
     parser.add_argument("-l", "--lo-offset", type=eng_float,
                         default=0, metavar="Hz",

@@ -32,22 +32,25 @@ namespace gr {
   namespace analyzer {
 
     bin_statistics_ff::sptr
-    bin_statistics_ff::make(size_t vlen, size_t meas_interval)
+    bin_statistics_ff::make(size_t vlen, size_t meas_interval, size_t detector)
     {
       return gnuradio::get_initial_sptr
-        (new bin_statistics_ff_impl(vlen, meas_interval));
+        (new bin_statistics_ff_impl(vlen, meas_interval, detector));
     }
 
     /*
      * The private constructor
      */
-    bin_statistics_ff_impl::bin_statistics_ff_impl(size_t vlen, size_t meas_interval)
+    bin_statistics_ff_impl::bin_statistics_ff_impl(size_t vlen,
+                                                   size_t meas_interval,
+                                                   size_t detector)
       : gr::sync_decimator("bin_statistics_ff",
                            gr::io_signature::make(1, 1, vlen * sizeof(float)),
                            gr::io_signature::make(1, 1, vlen * sizeof(float)), meas_interval),
-        d_vlen(vlen), d_meas_interval(meas_interval)
+        d_vlen(vlen), d_meas_interval(meas_interval), d_detector(detector)
     {
       assert(d_meas_interval > 0);
+      assert(d_detector < 2);  // (0 or 1)
 
       const int alignment_multiple = volk_get_alignment() / sizeof(float);
       set_alignment(std::max(1, alignment_multiple));
@@ -68,25 +71,34 @@ namespace gr {
       }
       else
       {
-        // Average the input vectors in the measurement interval
-        for (size_t n = 0; n < noutput_items; ++n)
+        // Apply statistic to the input vectors in the measurement interval
+        for (int n = 0; n < noutput_items; n++)
         {
           std::copy(&in[n * d_vlen * d_meas_interval],
                     &in[n * d_vlen * d_meas_interval + d_vlen],
                     &out[n * d_vlen]);
 
-          for (size_t i = 1; i < d_meas_interval; ++i)
+          for (size_t i = 1; i < d_meas_interval; i++)
           {
-            volk_32f_x2_add_32f(&out[n * d_vlen],
-                                &out[n * d_vlen],
-                                &in[(n * d_meas_interval + i) * d_vlen],
-                                d_vlen);
+            if (d_detector == AVG) {
+              volk_32f_x2_add_32f(&out[n * d_vlen],
+                                  &out[n * d_vlen],
+                                  &in[(n * d_meas_interval + i) * d_vlen],
+                                  d_vlen);
+            } else if (d_detector == PEAK) {
+              volk_32f_x2_max_32f(&out[n * d_vlen],
+                                  &out[n * d_vlen],
+                                  &in[(n * d_meas_interval + i) * d_vlen],
+                                  d_vlen);
+            }
           }
         }
 
-        // divide by d_meas_interval = multiply by 1/d_meas_interval
-        const float scalar = 1 / static_cast<float>(d_meas_interval);
-        volk_32f_s32f_multiply_32f(out, out, scalar, d_vlen * noutput_items);
+        if (d_detector == AVG) {
+          // divide by d_meas_interval = multiply by 1/d_meas_interval
+          const float scalar = 1 / static_cast<float>(d_meas_interval);
+          volk_32f_s32f_multiply_32f(out, out, scalar, d_vlen * noutput_items);
+        }
       }
 
       // Tell runtime system how many output items we produced.

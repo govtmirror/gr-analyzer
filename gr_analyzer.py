@@ -20,8 +20,8 @@ from analyzer import (usrp_controller_cc,
                       plotter_f)
 
 from configuration import configuration
-from cli_parser import init_parser
 import gui
+from cli_parser import init_parser
 from usrp import usrp
 
 
@@ -121,7 +121,7 @@ class top_block(gr.top_block):
                                        cfg.lo_offset,
                                        cfg.skip_initial,
                                        cfg.tune_delay,
-                                       cfg.fft_size * cfg.n_averages)
+                                       cfg.fft_size * cfg.nframes)
 
         if cfg.continuous_run:
             self.set_continuous_run()
@@ -148,7 +148,7 @@ class top_block(gr.top_block):
 
         c2mag_sq = blocks.complex_to_mag_squared(cfg.fft_size)
 
-        stats = bin_statistics_ff(cfg.fft_size, cfg.n_averages)
+        stats = bin_statistics_ff(cfg.fft_size, cfg.nframes, cfg.detector)
 
         power = sum(tap * tap for tap in cfg.window_coefficients)
 
@@ -185,7 +185,7 @@ class top_block(gr.top_block):
         # scaleV - scale voltage by scalar to get calibrated output
         # fft    - compute forward FFT, complex in complex out
         # mag^2  - convert vectors from complex to real by taking mag squared
-        # stats  - linear average vectors if n_averages > 1
+        # stats  - linear average or peak detect vectors if nframes > 1
         # W2dBm  - convert volt to dBm
         # stitch - overlap FFT segments by a certain number of bins
         # copy   - copy if gui thread is idle, else drop

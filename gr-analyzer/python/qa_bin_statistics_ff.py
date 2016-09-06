@@ -23,6 +23,9 @@ from gnuradio import gr, gr_unittest
 from gnuradio import blocks
 import analyzer_swig as analyzer
 
+AVG = 0
+PEAK = 1
+
 class qa_bin_statistics_ff (gr_unittest.TestCase):
 
     def setUp (self):
@@ -32,12 +35,13 @@ class qa_bin_statistics_ff (gr_unittest.TestCase):
         self.tb = None
 
     def test_001_t (self):
+        """Avg 4"""
         # set up fg
         src_data = (1, 2.1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
         expected_result = (8.5, 9.525, 10.5, 11.5, 12.5)
         src = blocks.vector_source_f(src_data)
         s2v = blocks.stream_to_vector(gr.sizeof_float, 5)
-        stats = analyzer.bin_statistics_ff(5, 4)
+        stats = analyzer.bin_statistics_ff(5, 4, AVG)
         dst = blocks.vector_sink_f(5)
         self.tb.connect(src, s2v, stats, dst)
         self.tb.run ()
@@ -46,12 +50,13 @@ class qa_bin_statistics_ff (gr_unittest.TestCase):
         self.assertFloatTuplesAlmostEqual(expected_result, result_data, 6)
 
     def test_002_t (self):
+        """Peak 4"""
         # set up fg
-        src_data = (1, 2.1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
-        expected_result = (3.5, 4.55, 5.5, 6.5, 7.5, 13.5, 14.5, 15.5, 16.5, 17.5)
+        src_data = (1, 2.1, 3, 4, 20, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 5)
+        expected_result = (16, 17, 18, 19, 20)
         src = blocks.vector_source_f(src_data)
         s2v = blocks.stream_to_vector(gr.sizeof_float, 5)
-        stats = analyzer.bin_statistics_ff(5, 2)
+        stats = analyzer.bin_statistics_ff(5, 4, PEAK)
         dst = blocks.vector_sink_f(5)
         self.tb.connect(src, s2v, stats, dst)
         self.tb.run ()
@@ -59,14 +64,61 @@ class qa_bin_statistics_ff (gr_unittest.TestCase):
         result_data = dst.data()
         self.assertFloatTuplesAlmostEqual(expected_result, result_data, 6)
 
+
     def test_003_t (self):
+        """Avg 2"""
+        # set up fg
+        src_data = (1, 2.1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
+        expected_result = (3.5, 4.55, 5.5, 6.5, 7.5, 13.5, 14.5, 15.5, 16.5, 17.5)
+        src = blocks.vector_source_f(src_data)
+        s2v = blocks.stream_to_vector(gr.sizeof_float, 5)
+        stats = analyzer.bin_statistics_ff(5, 2, AVG)
+        dst = blocks.vector_sink_f(5)
+        self.tb.connect(src, s2v, stats, dst)
+        self.tb.run ()
+        # check data
+        result_data = dst.data()
+        self.assertFloatTuplesAlmostEqual(expected_result, result_data, 6)
+
+    def test_004_t (self):
+        """Peak 2"""
+        # set up fg
+        src_data = (1, 2.1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20.1)
+        expected_result = (6, 7, 8, 9, 10, 16, 17, 18, 19, 20.1)
+        src = blocks.vector_source_f(src_data)
+        s2v = blocks.stream_to_vector(gr.sizeof_float, 5)
+        stats = analyzer.bin_statistics_ff(5, 2, PEAK)
+        dst = blocks.vector_sink_f(5)
+        self.tb.connect(src, s2v, stats, dst)
+        self.tb.run ()
+        # check data
+        result_data = dst.data()
+        self.assertFloatTuplesAlmostEqual(expected_result, result_data, 6)
+
+
+    def test_005_t (self):
         """Test no averaging"""
         # set up fg
         src_data = (1, 2.1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
         expected_result = (1, 2.1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
         src = blocks.vector_source_f(src_data)
         s2v = blocks.stream_to_vector(gr.sizeof_float, 5)
-        stats = analyzer.bin_statistics_ff(5, 1)
+        stats = analyzer.bin_statistics_ff(5, 1, AVG)
+        dst = blocks.vector_sink_f(5)
+        self.tb.connect(src, s2v, stats, dst)
+        self.tb.run ()
+        # check data
+        result_data = dst.data()
+        self.assertFloatTuplesAlmostEqual(expected_result, result_data, 6)
+
+    def test_006_t (self):
+        """Test no peak"""
+        # set up fg
+        src_data = (1, 2.1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
+        expected_result = (1, 2.1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
+        src = blocks.vector_source_f(src_data)
+        s2v = blocks.stream_to_vector(gr.sizeof_float, 5)
+        stats = analyzer.bin_statistics_ff(5, 1, PEAK)
         dst = blocks.vector_sink_f(5)
         self.tb.connect(src, s2v, stats, dst)
         self.tb.run ()

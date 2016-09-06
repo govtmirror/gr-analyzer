@@ -9,9 +9,9 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.ticker import FuncFormatter
 
-from gui import (tune_delay, averaging, export, frequency, gain, lotuning,
+from gui import (tune_delay, nframes, export, frequency, gain, lotuning,
                  marker, power, resolution, threshold, trigger, window,
-                 stream, span)
+                 detector, span)
 
 
 class wxpygui_frame(wx.Frame):
@@ -42,14 +42,14 @@ class wxpygui_frame(wx.Frame):
         self.res_ctrls = resolution.ctrls(self)
         self.windowfn_ctrls = window.ctrls(self)
         self.lo_offset_ctrls = lotuning.ctrls(self)
-        self.averaging_ctrls = averaging.ctrls(self)
+        self.nframes_ctrls = nframes.ctrls(self)
         self.tune_delay_ctrls = tune_delay.ctrls(self)
         self.frequency_ctrls = frequency.ctrls(self)
         self.span_ctrls = span.ctrls(self)
         self.trigger_ctrls = trigger.ctrls(self)
         self.power_ctrls = power.ctrls(self)
         self.export_ctrls = export.ctrls(self)
-        self.stream_ctrls = stream.ctrls(self)
+        self.detector_ctrls = detector.ctrls(self)
 
         self.set_layout()
 
@@ -83,7 +83,7 @@ class wxpygui_frame(wx.Frame):
 
     def set_layout(self):
         """Setup frame layout and sizers"""
-        # front panel to hold plot and constrol stack side-by-side
+        # front panel to hold plot and control stack side-by-side
         frontpanel = wx.BoxSizer(wx.HORIZONTAL)
 
         # control stack to hold control clusters vertically
@@ -96,7 +96,7 @@ class wxpygui_frame(wx.Frame):
 
         usrpstate_row1 = wx.BoxSizer(wx.HORIZONTAL)
         usrpstate_row1.Add(self.trigger_ctrls.layout, flag=wx.ALL, border=5)
-        usrpstate_row1.Add(self.stream_ctrls.layout, flag=wx.ALL, border=5)
+        usrpstate_row1.Add(self.detector_ctrls.layout, flag=wx.ALL, border=5)
 
         usrpstate_row2 = wx.BoxSizer(wx.HORIZONTAL)
         usrpstate_row2.Add(self.frequency_ctrls.layout,
@@ -130,19 +130,19 @@ class wxpygui_frame(wx.Frame):
         display_outline = wx.StaticBox(self, wx.ID_ANY, "Display")
         display_cluster = wx.StaticBoxSizer(display_outline, wx.HORIZONTAL)
 
-        averagingbox = wx.BoxSizer(wx.HORIZONTAL)
-        averagingbox.Add(self.averaging_ctrls.layout,
+        nframesbox = wx.BoxSizer(wx.HORIZONTAL)
+        nframesbox.Add(self.nframes_ctrls.layout,
                          proportion=1,
                          flag=wx.ALL,
                          border=5)
-        averagingbox.Add(self.tune_delay_ctrls.layout,
+        nframesbox.Add(self.tune_delay_ctrls.layout,
                          proportion=1,
                          flag=wx.ALL,
                          border=5)
 
         display_col1 = wx.BoxSizer(wx.VERTICAL)
         display_col1.Add(self.res_ctrls.layout, flag=wx.ALL, border=5)
-        display_col1.Add(averagingbox, flag=wx.EXPAND)
+        display_col1.Add(nframesbox, flag=wx.EXPAND)
 
         display_col2 = wx.BoxSizer(wx.VERTICAL)
         display_col2.Add(self.windowfn_ctrls.layout,

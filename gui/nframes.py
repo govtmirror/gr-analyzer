@@ -1,8 +1,8 @@
 import wx
 
 
-class averaging_txtctrl(wx.TextCtrl):
-    """Input TxtCtrl for adjusting number of passes for averaging."""
+class nframes_txtctrl(wx.TextCtrl):
+    """Input TxtCtrl for adjusting number of frames passed to detector."""
     def __init__(self, frame):
         wx.TextCtrl.__init__(self,
                              frame,
@@ -16,27 +16,27 @@ class averaging_txtctrl(wx.TextCtrl):
         self.set_value()
 
     def update(self, event):
-        """Update the number of averages set by the user."""
+        """Update the number of frames set by the user."""
         try:
             newval = max(1, int(self.GetValue()))
         except ValueError:
             self.set_value()
             return
 
-        if newval != self.frame.tb.pending_cfg.n_averages:
-            self.frame.tb.pending_cfg.n_averages = newval
+        if newval != self.frame.tb.pending_cfg.nframes:
+            self.frame.tb.pending_cfg.nframes = newval
             self.frame.tb.reconfigure()
 
         self.set_value()
 
     def set_value(self):
-        self.SetValue(str(self.frame.tb.pending_cfg.n_averages))
+        self.SetValue(str(self.frame.tb.pending_cfg.nframes))
 
 
 class ctrls(object):
     def __init__(self, frame):
-        """Initialize gui controls for number of passes for averaging."""
-        box = wx.StaticBox(frame, wx.ID_ANY, "# of DFT Avgs")
-        self.averaging_txtctrl = averaging_txtctrl(frame)
+        """Initialize gui controls for number of detectected frames."""
+        box = wx.StaticBox(frame, wx.ID_ANY, "No. of DFTs")
+        self.nframes_txtctrl = nframes_txtctrl(frame)
         self.layout = wx.StaticBoxSizer(box, wx.VERTICAL)
-        self.layout.Add(self.averaging_txtctrl, flag=wx.ALL, border=5)
+        self.layout.Add(self.nframes_txtctrl, flag=wx.ALL, border=5)

@@ -31,7 +31,7 @@ namespace gr {
   namespace analyzer {
 
     /*!
-     * \brief <+description of block+>
+     * \brief Perform a peak or avg detection on incoming DFT frames
      * \ingroup analyzer
      *
      */
@@ -48,7 +48,7 @@ namespace gr {
        * class. analyzer::bin_statistics_ff::make is the public interface for
        * creating new instances.
        */
-      static sptr make(size_t vlen, size_t meas_period);
+      static sptr make(size_t vlen, size_t meas_period, size_t detector);
     };
 
   } // namespace analyzer

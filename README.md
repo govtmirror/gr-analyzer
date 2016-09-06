@@ -22,7 +22,7 @@ Quick Start
 ```
 # On Ubuntu 16.04 - modify as needed for other systems
 $ sudo apt install gnuradio-dev libuhd-dev
-$ pip install numpy matplotlib
+$ pip install numpy matplotlib enum34
 $ git clone https://github.com/NTIA/gr-analyzer
 $ cd gr-analyzer/gr-analyzer
 $ mkdir build; cd build

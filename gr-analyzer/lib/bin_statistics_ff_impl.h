@@ -28,17 +28,22 @@ namespace gr {
 
     class bin_statistics_ff_impl : public bin_statistics_ff
     {
-     private:
-      unsigned int d_vlen;
-      unsigned int d_meas_interval;
+    private:
+      size_t d_vlen;
+      size_t d_meas_interval;
+      size_t d_detector;
 
-     public:
-      bin_statistics_ff_impl(size_t vlen, size_t meas_interval);
+    public:
+      bin_statistics_ff_impl(size_t vlen,
+                             size_t meas_interval,
+                             size_t detector);
 
       // Where all the action really happens
       int work(int noutput_items,
                gr_vector_const_void_star &input_items,
                gr_vector_void_star &output_items);
+
+      enum Detector {AVG, PEAK};
     };
 
   } // namespace analyzer
