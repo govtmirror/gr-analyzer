@@ -11,7 +11,7 @@ from matplotlib.ticker import FuncFormatter
 
 from gui import (tune_delay, nframes, export, frequency, gain, lotuning,
                  marker, power, resolution, threshold, trigger, window,
-                 detector, span)
+                 detector, span, scale)
 
 
 class wxpygui_frame(wx.Frame):
@@ -50,6 +50,7 @@ class wxpygui_frame(wx.Frame):
         self.power_ctrls = power.ctrls(self)
         self.export_ctrls = export.ctrls(self)
         self.detector_ctrls = detector.ctrls(self)
+        self.scale_ctrls = scale.ctrls(self)
 
         self.set_layout()
 
@@ -97,6 +98,8 @@ class wxpygui_frame(wx.Frame):
         usrpstate_row1 = wx.BoxSizer(wx.HORIZONTAL)
         usrpstate_row1.Add(self.trigger_ctrls.layout, flag=wx.ALL, border=5)
         usrpstate_row1.Add(self.detector_ctrls.layout, flag=wx.ALL, border=5)
+        usrpstate_row1.Add(self.gain_ctrls.layout, flag=wx.ALL, border=5)
+        usrpstate_row1.Add(self.lo_offset_ctrls.layout, flag=wx.ALL, border=5)
 
         usrpstate_row2 = wx.BoxSizer(wx.HORIZONTAL)
         usrpstate_row2.Add(self.frequency_ctrls.layout,
@@ -107,18 +110,16 @@ class wxpygui_frame(wx.Frame):
                            proportion=1,
                            flag=wx.ALL,#|wx.EXPAND,
                            border=5)
+        usrpstate_row2.Add(self.scale_ctrls.layout,
+                           proportion=1,
+                           flag=wx.ALL,#|wx.EXPAND,
+                           border=5)
 
         usrpstate_col1 = wx.BoxSizer(wx.VERTICAL)
         usrpstate_col1.Add(usrpstate_row1)
         usrpstate_col1.Add(usrpstate_row2, flag=wx.EXPAND)
 
         usrpstate_col2 = wx.BoxSizer(wx.VERTICAL)
-        usrpstate_col2.Add(self.gain_ctrls.layout,
-                           flag=wx.ALL,
-                           border=5)
-        usrpstate_col2.Add(self.lo_offset_ctrls.layout,
-                           flag=wx.ALL|wx.EXPAND,
-                           border=5)
 
         # col 1
         usrpstate_cluster.Add(usrpstate_col1)
