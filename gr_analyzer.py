@@ -19,9 +19,9 @@ from analyzer import (usrp_controller_cc,
                       stitch_fft_segments_ff,
                       plotter_f)
 
+from cli_parser import init_parser
 from configuration import configuration
 import gui
-from cli_parser import init_parser
 from usrp import usrp
 
 

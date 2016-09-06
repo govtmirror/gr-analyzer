@@ -37,7 +37,7 @@ class configuration(object):
 
         # configuration variables set by update():
         self.span = None               # width in Hz of total area to sample
-        self.RBW = None                # width in Hz of one fft bin (delta f)
+        self.deltaf = None             # width in Hz of one fft bin (delta f)
         self.freq_step = None          # step in Hz between center frequencies
         self.min_freq = None           # lowest sampled frequency
         self.max_freq = None           # highest sampled frequency
@@ -102,7 +102,7 @@ class configuration(object):
 
     def update(self):
         """Convencience function to update various variables and caches"""
-        self.update_RBW()
+        self.update_deltaf()
         self.update_freq_step()
         self.update_span()
         self.update_min_max_freq()
@@ -110,9 +110,9 @@ class configuration(object):
         self.update_bin_freq_cache()
         self.update_bin_indices()
 
-    def update_RBW(self):
-        """Update the channel bandwidth"""
-        self.RBW = self.sample_rate / self.fft_size
+    def update_deltaf(self):
+        """Update the bin width"""
+        self.deltaf = self.sample_rate / self.fft_size
 
     def update_freq_step(self):
         """Set the freq_step to a percentage of the actual data throughput.
@@ -120,7 +120,7 @@ class configuration(object):
         This allows us to discard bins on both ends of the spectrum.
         """
         self.freq_step = self.adjust_rate(self.sample_rate,
-                                          self.RBW,
+                                          self.deltaf,
                                           self.overlap)
 
     def update_span(self):
@@ -132,8 +132,8 @@ class configuration(object):
 
     def update_min_max_freq(self):
         """Calculate actual start and end of requested span"""
-        self.min_freq = self.center_freq - (self.span / 2) + (self.RBW / 2)
-        self.max_freq = self.min_freq + self.span - self.RBW
+        self.min_freq = self.center_freq - (self.span / 2) + (self.deltaf / 2)
+        self.max_freq = self.min_freq + self.span - self.deltaf
 
     def update_tuned_freq_cache(self):
         """Cache center (tuned) frequencies.
@@ -158,7 +158,7 @@ class configuration(object):
         # cache all fft bin frequencies
         max_fc = self.center_freqs[-1]
         max_bin_freq = max_fc + (self.freq_step / 2)
-        self.bin_freqs = np.arange(self.min_freq, max_bin_freq, self.RBW)
+        self.bin_freqs = np.arange(self.min_freq, max_bin_freq, self.deltaf)
 
     def update_bin_indices(self):
         """Update common indices used in cropping and overlaying DFTs"""
@@ -168,7 +168,7 @@ class configuration(object):
         self.bin_offset = (self.bin_stop - self.bin_start) / 2
 
     @staticmethod
-    def adjust_rate(samp_rate, rbw, overlap):
+    def adjust_rate(samp_rate, deltaf, overlap):
         """Reduce rate by a user-selected percentage and round it.
 
         The adjusted sample size is used to calculate a smaller frequency
@@ -176,10 +176,10 @@ class configuration(object):
         affected by filter rolloff.
 
         The adjusted sample size is then rounded so that a whole number of bins
-        of size RBW go into it.
+        of size deltaf go into it.
         """
         ratio_valid_bins = 1.0 - overlap
-        return int(round((samp_rate * ratio_valid_bins) / rbw) * rbw)
+        return int(round((samp_rate * ratio_valid_bins) / deltaf) * deltaf)
 
     def export_to_matlab(self):
         """Export current configuration settings to .settings.mat"""
