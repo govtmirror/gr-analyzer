@@ -32,7 +32,8 @@ class span_txtctrl(wx.TextCtrl):
             self.frame.tb.pending_cfg.requested_span = float_val
             self.frame.tb.reconfigure(redraw_plot=True)
             self.frame.tb.pending_cfg.update()
-            self.set_value()
+
+        self.set_value()
 
     def set_default(self, event):
         """Set a default span"""

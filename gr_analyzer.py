@@ -55,8 +55,6 @@ class top_block(gr.top_block):
         self.continuous_run = threading.Event()
         self.single_run = threading.Event()
 
-        self.reset_stream_args = False
-
         self.plot_iface = gui.plot_interface(self)
 
         self.rebuild_flowgraph = False
@@ -91,12 +89,11 @@ class top_block(gr.top_block):
     def clear_exit_after_complete(self):
         self.ctrl.clear_exit_after_complete()
 
-    def reconfigure(self, redraw_plot=False, reset_stream_args=False):
-        msg = "tb.reconfigure called - redraw_plot: {}, reset_stream_args: {}"
-        self.logger.debug(msg.format(redraw_plot, reset_stream_args))
+    def reconfigure(self, redraw_plot=False):
+        msg = "tb.reconfigure called - redraw_plot: {}"
+        self.logger.debug(msg.format(redraw_plot))
         self.rebuild_flowgraph = True
-        self.set_exit_after_complete()
-        self.reset_stream_args = reset_stream_args
+        self.set_exit_after_complete()  # exit flowgraph to apply new config
         if redraw_plot:
             self.plot_iface.redraw_plot.set()
 

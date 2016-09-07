@@ -215,6 +215,24 @@ class wxpygui_frame(wx.Frame):
         # frequency that a measurement was taken at, and insert it into the
         # corresponding index in y-vals.
         if adjust_freq_range:
+            len_x = len(self.x)
+            len_y = len(y)
+            if len_x != len_y:
+                # There's a race condition when in continuous mode and
+                # a frequency range-adjusting parameter (like span) is
+                # changed, so we sometimes get updated x-values before
+                # updated y-values. Since a) it only affects
+                # continuous mode and b) the user has requested a
+                # different view, there's no harm in simply dropping
+                # the old data and re-calling configure_mpl_plot next frame.
+                # Still - this is a workaround.
+                # The most "correct" solution would be to have
+                # controller_c tag the first sample propagated after
+                # flowgraph starts, which plotter_f would look for and
+                # use to trigger plot reconfig.
+                self.logger.debug("data mismatch - frame dropped")
+                return False
+
             if hasattr(self, 'mkr1'):
                 self.mkr1.unplot()
             if hasattr(self, 'mkr2'):
@@ -231,6 +249,8 @@ class wxpygui_frame(wx.Frame):
 
         self.canvas.draw()
         self._update_background()
+
+        return True
 
     def format_axis(self):
         """Set the formatting of the plot axes."""
@@ -274,7 +294,10 @@ class wxpygui_frame(wx.Frame):
             #assert not keep_alive
             self.logger.debug("Reconfiguring matplotlib plot")
             self.format_axis()
-            self.configure_mpl_plot(y)
+            if not self.configure_mpl_plot(y):
+                # Got bad data, try again next frame
+                self.tb.plot_iface.redraw_plot.set()
+                return
 
         # Required for plot blitting
         self.canvas.restore_region(self.plot_background)
